@@ -154,7 +154,8 @@ export default function Booking() {
   };
 
 
-  /* ================= UI ================= */  return (
+  /* ================= UI ================= */
+  return (
     <Container>
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Bookings</h1>

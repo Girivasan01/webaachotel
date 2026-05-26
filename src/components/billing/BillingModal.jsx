@@ -97,14 +97,15 @@ const BillingModal = ({
     ),
   };
 
-  const isWithGST = gstMode === "with";
-  const subtotal = roomCharges + kitchenCharges + addOnsTotal;
-  const roomGst = isWithGST ? roomCharges * safeGst.room : 0;
-  const kitchenGst = isWithGST ? kitchenCharges * safeGst.kitchen : 0;
-  const totalGst = roomGst + kitchenGst;
-  const subtotalWithGst = subtotal + totalGst;
-  const appliedDiscount =
-    Number(safeForm.discount || 0) + Number(guestDiscount || 0);
+const isWithGST = gstMode === "with";
+const subtotal = roomCharges + kitchenCharges + addOnsTotal;
+const appliedDiscount =
+  Number(safeForm.discount || 0) + Number(guestDiscount || 0);
+const discountedRoomCharges = roomCharges - appliedDiscount;
+const roomGst = isWithGST ? discountedRoomCharges * safeGst.room : 0;
+const kitchenGst = isWithGST ? kitchenCharges * safeGst.kitchen : 0;
+const totalGst = roomGst + kitchenGst;
+const subtotalWithGst = subtotal + totalGst;
   const totalAmount = isWithGST ? subtotalWithGst : subtotal;
   const advancePaid = Number(selectedBill.advance_paid || 0);
   const balanceAmount = Number(

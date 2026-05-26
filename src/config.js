@@ -5,7 +5,7 @@ const isLocalHost =
 
 const defaultApiUrl = isLocalHost
   ? "http://localhost:5000/api"
-  : "https://whitesmoke-goat-535930.hostingersite.com/api";
+  : "https://mediumblue-crow-320452.hostingersite.com/api";
 
 const rawApiUrl = import.meta.env.VITE_API_URL || defaultApiUrl;
 
