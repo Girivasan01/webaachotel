@@ -353,15 +353,20 @@ export const HotelInvoiceDocument = ({
 
   const numDays = (() => {
     if (selectedBill?.check_in && selectedBill?.check_out) {
-      const d1 = new Date(selectedBill.check_in);
-      const d2 = new Date(selectedBill.check_out);
-      const msPerDay = 1000 * 60 * 60 * 24;
-      
-      const diffDays = Math.round(
-        (new Date(d2.getFullYear(), d2.getMonth(), d2.getDate()) - 
-         new Date(d1.getFullYear(), d1.getMonth(), d1.getDate())) / msPerDay
+      const d1 = new Date(
+        selectedBill.booking_check_in || selectedBill.check_in,
       );
-      
+      const d2 = new Date(
+        selectedBill.booking_check_out || selectedBill.check_out,
+      );
+      const msPerDay = 1000 * 60 * 60 * 24;
+
+      const diffDays = Math.round(
+        (new Date(d2.getFullYear(), d2.getMonth(), d2.getDate()) -
+          new Date(d1.getFullYear(), d1.getMonth(), d1.getDate())) /
+          msPerDay,
+      );
+
       return Math.max(diffDays, 1);
     }
     return 1;
@@ -372,35 +377,42 @@ export const HotelInvoiceDocument = ({
   );
 
   const roomPrice = Number(form?.room_price || 0);
-  
+
   // Consolidate Saved Add-ons (from DB) and New Add-ons (from session)
-  const savedAddOns = (selectedBill?.lines?.addon || []).map(a => ({
+  const savedAddOns = (selectedBill?.lines?.addon || []).map((a) => ({
     name: a.description || "Add-on",
     price: Number(a.total || 0),
-    qty: Number(a.quantity || 1)
+    qty: Number(a.quantity || 1),
   }));
-  const newAddOns = (Array.isArray(form?.add_ons) ? form.add_ons : []).map(a => ({
-    name: a.name || a.label || "Add-on",
-    price: Number(a.price || 0),
-    qty: Number(a.qty || 1)
-  }));
+  const newAddOns = (Array.isArray(form?.add_ons) ? form.add_ons : []).map(
+    (a) => ({
+      name: a.name || a.label || "Add-on",
+      price: Number(a.price || 0),
+      qty: Number(a.qty || 1),
+    }),
+  );
   const allAddOns = [...savedAddOns, ...newAddOns];
 
   let kitchenItems = [];
-  if (selectedBill?.lines?.kitchen && Array.isArray(selectedBill.lines.kitchen)) {
+  if (
+    selectedBill?.lines?.kitchen &&
+    Array.isArray(selectedBill.lines.kitchen)
+  ) {
     kitchenItems = selectedBill.lines.kitchen;
   }
 
-  // ── GST amounts (each kept separate) ──────────────────────────
+  // ── GST amounts (each kept separate) ─────────────
   const roomGstAmount = Number(gstAmounts?.room || 0);
   const kitchenGstAmount = Number(gstAmounts?.kitchen || 0);
   const totalGstAmount = roomGstAmount + kitchenGstAmount;
 
-  // ── GST rate labels ────────────────────────────────────────────
+  // ── GST rate labels ────
   const roomGstPct = ((gstRates?.room || 0) * 100).toFixed(1);
-  const kitchenGstPct = ((gstRates?.kitchen || gstRates?.room || 0) * 100).toFixed(1);
+  const kitchenGstPct = (
+    (gstRates?.kitchen || gstRates?.room || 0) * 100
+  ).toFixed(1);
 
-  const roomDiscountVal      = Number(form?.discount || 0);
+  const roomDiscountVal = Number(form?.discount || 0);
   const discountedRoomTariff = Math.max(0, roomPrice - roomDiscountVal);
 
   const totalGrossValue = subtotal;
@@ -516,9 +528,7 @@ export const HotelInvoiceDocument = ({
           {/* Room Tariff */}
           <View style={styles.tableRow}>
             <Text style={styles.col1}>{lineItemDateOnly}</Text>
-            <Text style={styles.col2}>
-              Room Tariff
-            </Text>
+            <Text style={styles.col2}>Room Tariff</Text>
             <Text style={styles.col3}>{roomPrice.toFixed(2)}</Text>
             <Text style={styles.col4}>0.00</Text>
             <Text style={styles.col5}>{roomPrice.toFixed(2)}</Text>
@@ -531,7 +541,8 @@ export const HotelInvoiceDocument = ({
               <View style={styles.tableRow} key={`kitchen-${i}`}>
                 <Text style={styles.col1}>{lineItemDateOnly}</Text>
                 <Text style={styles.col2}>
-                  {item.description || item.name} (Qty: {item.quantity || item.qty})
+                  {item.description || item.name} (Qty:{" "}
+                  {item.quantity || item.qty})
                 </Text>
                 <Text style={styles.col3}>{itemTotal.toFixed(2)}</Text>
                 <Text style={styles.col4}>0.00</Text>
@@ -556,18 +567,16 @@ export const HotelInvoiceDocument = ({
             );
           })}
 
-          {/* ── SEPARATE GST ROWS ─────────────────────────────────────────
+          {/* ── SEPARATE GST ROWS ──────────────
               GST stays applied internally, but add-ons are non-taxable.
               We show only room tariff GST and kitchen GST when applicable.
-          ──────────────────────────────────────────────────────────────── */}
+          ────────── */}
 
           {/* Row 1: Room Tariff GST */}
           {gstIncluded && roomGstAmount > 0 && (
             <View style={styles.tableRow}>
               <Text style={styles.col1}>{lineItemDateOnly}</Text>
-              <Text style={styles.col2}>
-                Room Tariff GST ({roomGstPct}%)
-              </Text>
+              <Text style={styles.col2}>Room Tariff GST ({roomGstPct}%)</Text>
               <Text style={styles.col3}>{roomGstAmount.toFixed(2)}</Text>
               <Text style={styles.col4}>0.00</Text>
               <Text style={styles.col5}>{roomGstAmount.toFixed(2)}</Text>
@@ -590,7 +599,9 @@ export const HotelInvoiceDocument = ({
           {/* Summary rows — totalGstAmount already covers all three */}
           <View style={styles.tableRow}>
             <Text style={styles.col1}></Text>
-            <Text style={[styles.col2, styles.boldText, { textAlign: "right" }]}>
+            <Text
+              style={[styles.col2, styles.boldText, { textAlign: "right" }]}
+            >
               Total INR
             </Text>
             <Text style={styles.col3}></Text>
@@ -602,18 +613,24 @@ export const HotelInvoiceDocument = ({
 
           <View style={styles.tableRow}>
             <Text style={styles.col1}></Text>
-            <Text style={[styles.col5, styles.boldText, { textAlign: "right" }]}>
+            <Text
+              style={[styles.col5, styles.boldText, { textAlign: "right" }]}
+            >
               Gross Value
             </Text>
             <Text style={styles.col3}></Text>
             <Text style={styles.col4}></Text>
-            <Text style={styles.col5}>{Number(totalAmount || 0).toFixed(2)}</Text>
+            <Text style={styles.col5}>
+              {Number(totalAmount || 0).toFixed(2)}
+            </Text>
           </View>
 
           {gstIncluded && totalGstAmount > 0 && (
             <View style={styles.tableRow}>
               <Text style={styles.col1}></Text>
-              <Text style={[styles.col2, styles.boldText, { textAlign: "right" }]}>
+              <Text
+                style={[styles.col2, styles.boldText, { textAlign: "right" }]}
+              >
                 Tax Amount
               </Text>
               <Text style={styles.col3}></Text>
@@ -625,7 +642,9 @@ export const HotelInvoiceDocument = ({
           {guestDiscount > 0 && (
             <View style={styles.tableRow}>
               <Text style={styles.col1}></Text>
-              <Text style={[styles.col2, styles.boldText, { textAlign: "right" }]}>
+              <Text
+                style={[styles.col2, styles.boldText, { textAlign: "right" }]}
+              >
                 Guest Discount
               </Text>
               <Text style={styles.col3}></Text>
@@ -638,17 +657,23 @@ export const HotelInvoiceDocument = ({
 
           <View style={styles.tableRow}>
             <Text style={styles.col1}></Text>
-            <Text style={[styles.col2, styles.boldText, { textAlign: "right" }]}>
+            <Text
+              style={[styles.col2, styles.boldText, { textAlign: "right" }]}
+            >
               Advance Paid
             </Text>
             <Text style={styles.col3}></Text>
             <Text style={styles.col4}></Text>
-            <Text style={styles.col5}>{Number(advancePaid || 0).toFixed(2)}</Text>
+            <Text style={styles.col5}>
+              {Number(advancePaid || 0).toFixed(2)}
+            </Text>
           </View>
 
           <View style={styles.tableRowLast}>
             <Text style={styles.col1}></Text>
-            <Text style={[styles.col2, styles.boldText, { textAlign: "right" }]}>
+            <Text
+              style={[styles.col2, styles.boldText, { textAlign: "right" }]}
+            >
               BILL TOTAL
             </Text>
             <Text style={styles.col3}></Text>

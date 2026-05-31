@@ -1,11 +1,18 @@
 import { useState } from "react";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 import { AuthProvider, useAuth } from "./hooks/useAuth";
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import Sidebar from "./components/layout/Sidebar";
 import Topbar from "./components/layout/Topbar";
+import SubscriptionWarning from "./components/layout/SubscriptionWarning";
 
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -21,7 +28,6 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import StaffManagement from "./pages/StaffManagement";
 import ChangePassword from "./components/layout/ChangePasswordModal";
 import RoomCalendar from "./pages/RoomCalendar";
-
 
 /* ==========================
    PROTECTED APP LAYOUT
@@ -42,6 +48,7 @@ const AppLayout = () => {
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       <div className="flex-1 flex flex-col min-w-0">
         <Topbar onMenuClick={() => setSidebarOpen(true)} />
+        <SubscriptionWarning />
         <main className="flex-1">
           <Routes>
             <Route path="/" element={<Dashboard />} />
@@ -89,7 +96,10 @@ export default function App() {
         <Routes>
           {/* PUBLIC */}
           <Route path="/login" element={<Login />} />
-          <Route path="/kitchen-login" element={<Navigate to="/login" replace />} />
+          <Route
+            path="/kitchen-login"
+            element={<Navigate to="/login" replace />}
+          />
 
           {/* PROTECTED */}
           <Route path="/*" element={<AppLayout />} />

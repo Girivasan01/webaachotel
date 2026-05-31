@@ -7,11 +7,11 @@ import BillingModal from "./BillingModal";
 import Pagination from "./Pagination";
 import SearchInput from "../common/SearchInput";
 import { LoadingSpinner } from "../common/LoadingSpinner";
-import { Download, MoreVertical, Eye } from "lucide-react";
+import { Download, MoreVertical, Eye, Trash2 } from "lucide-react";
 
 const PAGE_SIZE = 8;
 
-// ─── BILLED BY CELL ──────────────────────────────────────────────────────────
+// ─── BILLED BY CELL ────
 function BilledByCell({ billedBy }) {
   const name = billedBy && billedBy.trim() !== "" ? billedBy : "Admin User";
   const initial = name[0].toUpperCase();
@@ -25,9 +25,11 @@ function BilledByCell({ billedBy }) {
   );
 }
 
-// ─── TABLE ROW ───────────────────────────────────────────────────────────────
-function BillRow({ bill, onOpen }) {
+// ─── TABLE ROW ─────────
+function BillRow({ bill, onOpen, onDeleteComplete }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
 
   const customerInitial = (bill.customer_name || "?")[0].toUpperCase();
   const formattedDate = bill.created_at
@@ -40,19 +42,14 @@ function BillRow({ bill, onOpen }) {
 
   return (
     <tr className="border-b border-gray-100 hover:bg-gray-50/60 transition-colors">
-      {/* Bill ID */}
       <td className="py-3 pl-4 pr-3 text-sm font-medium text-gray-700 whitespace-nowrap">
         #{bill.id}
       </td>
-
-      {/* Booking ID */}
       <td className="px-3 py-3 whitespace-nowrap">
         <span className="inline-block rounded bg-gray-100 px-2 py-0.5 font-mono text-xs text-gray-600">
           {bill.booking_id}
         </span>
       </td>
-
-      {/* Customer */}
       <td className="px-3 py-3 whitespace-nowrap">
         <div className="flex items-center gap-2">
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-600 text-xs font-bold text-white uppercase">
@@ -63,8 +60,6 @@ function BillRow({ bill, onOpen }) {
           </span>
         </div>
       </td>
-
-      {/* Room */}
       <td className="px-3 py-3 whitespace-nowrap">
         <div className="flex items-center gap-1.5">
           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-[10px] text-gray-500">
@@ -75,16 +70,12 @@ function BillRow({ bill, onOpen }) {
           </span>
         </div>
       </td>
-
-      {/* Date */}
       <td className="px-3 py-3 whitespace-nowrap">
         <div className="text-sm text-gray-700">{formattedDate}</div>
         <div className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
           Created
         </div>
       </td>
-
-      {/* Advance */}
       <td className="px-3 py-3 whitespace-nowrap">
         <div className="text-sm font-medium text-gray-800">
           ₹{Number(bill.advance_paid || 0).toLocaleString("en-IN")}
@@ -93,13 +84,9 @@ function BillRow({ bill, onOpen }) {
           Paid
         </div>
       </td>
-
-      {/* Billed By */}
       <td className="px-3 py-3 whitespace-nowrap">
         <BilledByCell billedBy={bill.billed_by} />
       </td>
-
-      {/* Total */}
       <td className="px-3 py-3 whitespace-nowrap">
         <div className="text-sm font-bold text-gray-900">
           ₹{Number(bill.total_amount || 0).toLocaleString("en-IN")}
@@ -113,26 +100,92 @@ function BillRow({ bill, onOpen }) {
       <td className="py-3 pl-3 pr-4 whitespace-nowrap">
         <div className="relative flex justify-end">
           <button
-            onClick={() => setMenuOpen((p) => !p)}
+            onClick={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              setMenuPos({ top: rect.bottom + 4, left: rect.right - 192 });
+              setMenuOpen((p) => !p);
+              setConfirmDelete(false);
+            }}
             className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
           >
             <MoreVertical size={16} />
           </button>
+
           {menuOpen && (
-            <div
-              className="absolute right-0 top-9 z-20 w-40 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg"
-              onMouseLeave={() => setMenuOpen(false)}
-            >
-              <button
+            <>
+              {/* invisible backdrop to close on outside click */}
+              <div
+                className="fixed inset-0 z-[998]"
                 onClick={() => {
                   setMenuOpen(false);
-                  onOpen(bill);
+                  setConfirmDelete(false);
                 }}
-                className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-gray-700 hover:bg-blue-50"
+              />
+              <div
+                style={{
+                  position: "fixed",
+                  top: menuPos.top,
+                  left: menuPos.left,
+                  zIndex: 999,
+                  width: 192,
+                }}
+                className="rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden"
               >
-                <Eye size={14} /> Generate Bill
-              </button>
-            </div>
+                <button
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onOpen(bill);
+                  }}
+                  className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-gray-700 hover:bg-blue-50"
+                >
+                  <Eye size={14} /> Generate Bill
+                </button>
+
+                {!confirmDelete ? (
+                  <button
+                    onClick={() => setConfirmDelete(true)}
+                    className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-red-600 hover:bg-red-50"
+                  >
+                    <Trash2 size={14} /> Delete Bill
+                  </button>
+                ) : (
+                  <div className="px-3 py-2 bg-red-50 border-t border-red-100">
+                    <p className="text-xs text-red-600 font-medium mb-2">
+                      Sure you want to delete?
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          axios
+                            .delete(`${API_BASE_URL}/api/billings/${bill.id}`, {
+                              withCredentials: true,
+                            })
+                            .then(() => {
+                              toast.success("Bill deleted successfully");
+                              setMenuOpen(false);
+                              setConfirmDelete(false);
+                              if (onDeleteComplete) onDeleteComplete(bill.id);
+                            })
+                            .catch((err) => {
+                              console.error(err);
+                              toast.error("Failed to delete bill");
+                            });
+                        }}
+                        className="flex-1 py-1 bg-red-600 text-white text-xs rounded-lg hover:bg-red-700"
+                      >
+                        Yes
+                      </button>
+                      <button
+                        onClick={() => setConfirmDelete(false)}
+                        className="flex-1 py-1 bg-gray-200 text-gray-700 text-xs rounded-lg hover:bg-gray-300"
+                      >
+                        No
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </div>
       </td>
@@ -140,7 +193,7 @@ function BillRow({ bill, onOpen }) {
   );
 }
 
-// ─── BILLING LIST ─────────────────────────────────────────────────────────────
+// ─── BILLING LIST ───────
 const BillingList = () => {
   const [billings, setBillings] = useState([]);
   const [filteredBillings, setFilteredBillings] = useState([]);
@@ -212,8 +265,8 @@ const BillingList = () => {
           billings.filter(
             (b) =>
               b.booking_id?.toLowerCase().includes(text) ||
-              b.customer_name?.toLowerCase().includes(text)
-          )
+              b.customer_name?.toLowerCase().includes(text),
+          ),
         );
       }
       setCurrentPage(1);
@@ -241,7 +294,7 @@ const BillingList = () => {
       setSelectedBill(res.data);
       const roomCharges = (res.data.lines?.room ?? []).reduce(
         (sum, item) => sum + Number(item?.total || 0),
-        0
+        0,
       );
       setForm({
         room_price: roomCharges,
@@ -303,14 +356,16 @@ const BillingList = () => {
   const totalPages = Math.ceil(filteredBillings.length / PAGE_SIZE);
   const paginatedBills = filteredBillings.slice(
     (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE
+    currentPage * PAGE_SIZE,
   );
 
   return (
     <div className="space-y-5">
       {/* ── Header ── */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 md:text-3xl">Billing</h1>
+        <h1 className="text-2xl font-bold text-gray-900 md:text-3xl">
+          Billing
+        </h1>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap">
           <div className="flex items-center gap-2 flex-wrap">
@@ -381,7 +436,12 @@ const BillingList = () => {
                 </thead>
                 <tbody>
                   {paginatedBills.map((bill) => (
-                    <BillRow key={bill.id} bill={bill} onOpen={openModal} />
+                    <BillRow
+                      key={bill.id}
+                      bill={bill}
+                      onOpen={openModal}
+                      onDeleteComplete={removeBillFromUi}
+                    />
                   ))}
                 </tbody>
               </table>

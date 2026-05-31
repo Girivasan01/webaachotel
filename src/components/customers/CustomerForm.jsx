@@ -6,7 +6,7 @@ import { Upload, X, FileText } from "lucide-react";
 const isValidPhone = (phone) => /^[6-9]\d{9}$/.test(phone);
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-// ─── FIELD COMPONENTS ────────────────────────────────────────────────────────
+// ─── FIELD COMPONENTS ────────────────
 function Label({ children }) {
   return (
     <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-gray-500">
@@ -33,7 +33,7 @@ function Field({ label, children }) {
   );
 }
 
-// ─── MAIN FORM ────────────────────────────────────────────────────────────────
+// ─── MAIN FORM ──────────
 export default function CustomerForm({ onSave, onCancel, existing }) {
   const empty = {
     id: null,
@@ -50,15 +50,28 @@ export default function CustomerForm({ onSave, onCancel, existing }) {
 
   const [c, setC] = useState(existing || empty);
 
-  const set = (key) => (e) => setC((prev) => ({ ...prev, [key]: e.target.value }));
+  const set = (key) => (e) =>
+    setC((prev) => ({ ...prev, [key]: e.target.value }));
 
   const submit = (e) => {
     e.preventDefault();
 
-    if (!c.name.trim()) { toast.error("Full Name is required"); return; }
-    if (!c.contact.trim()) { toast.error("Contact Number is required"); return; }
-    if (!isValidPhone(c.contact)) { toast.error("Enter a valid 10-digit mobile number"); return; }
-    if (c.email.trim() && !isValidEmail(c.email)) { toast.error("Enter a valid email address"); return; }
+    if (!c.name.trim()) {
+      toast.error("Full Name is required");
+      return;
+    }
+    if (!c.contact.trim()) {
+      toast.error("Contact Number is required");
+      return;
+    }
+    if (!isValidPhone(c.contact)) {
+      toast.error("Enter a valid 10-digit mobile number");
+      return;
+    }
+    if (c.email.trim() && !isValidEmail(c.email)) {
+      toast.error("Enter a valid email address");
+      return;
+    }
 
     const formData = new FormData();
     formData.append("name", c.name);
@@ -77,7 +90,6 @@ export default function CustomerForm({ onSave, onCancel, existing }) {
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-4">
-
       {/* ── Title ── */}
       <div>
         <h3 className="text-base font-bold text-gray-900">
@@ -88,19 +100,33 @@ export default function CustomerForm({ onSave, onCancel, existing }) {
 
       {/* ── Row 1: Name & Contact ── */}
       <div className="grid grid-cols-2 gap-3">
-        <Field label={<>Full Name <span className="text-red-500 normal-case">*</span></>}>
+        <Field
+          label={
+            <>
+              Full Name <span className="text-red-500 normal-case">*</span>
+            </>
+          }
+        >
           <Input
             placeholder="Enter full name"
             value={c.name}
             onChange={set("name")}
           />
         </Field>
-        <Field label={<>Contact <span className="text-red-500 normal-case">*</span></>}>
+        <Field
+          label={
+            <>
+              Contact <span className="text-red-500 normal-case">*</span>
+            </>
+          }
+        >
           <Input
             placeholder="10-digit mobile"
             value={c.contact}
             maxLength={10}
-            onChange={(e) => setC({ ...c, contact: e.target.value.replace(/\D/g, "") })}
+            onChange={(e) =>
+              setC({ ...c, contact: e.target.value.replace(/\D/g, "") })
+            }
           />
         </Field>
       </div>
@@ -116,11 +142,7 @@ export default function CustomerForm({ onSave, onCancel, existing }) {
           />
         </Field>
         <Field label="Date of Birth (optional)">
-          <Input
-            type="date"
-            value={c.dob}
-            onChange={set("dob")}
-          />
+          <Input type="date" value={c.dob} onChange={set("dob")} />
         </Field>
       </div>
 
@@ -140,7 +162,14 @@ export default function CustomerForm({ onSave, onCancel, existing }) {
               <option value="Driving License">Driving License</option>
             </select>
             <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <polyline points="6 9 12 15 18 9" />
               </svg>
             </span>
@@ -168,7 +197,9 @@ export default function CustomerForm({ onSave, onCancel, existing }) {
           <Input
             placeholder="e.g. TN01AB1234"
             value={c.vehicle_no}
-            onChange={(e) => setC({ ...c, vehicle_no: e.target.value.toUpperCase() })}
+            onChange={(e) =>
+              setC({ ...c, vehicle_no: e.target.value.toUpperCase() })
+            }
             className="uppercase"
           />
         </Field>
@@ -179,13 +210,19 @@ export default function CustomerForm({ onSave, onCancel, existing }) {
         {!c.id_file ? (
           <label className="flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 py-5 transition hover:border-gray-300 hover:bg-gray-100">
             <Upload size={18} className="text-gray-400" />
-            <span className="text-xs font-semibold text-gray-600">Click to Upload</span>
-            <span className="text-[11px] text-gray-400">JPG, PNG, PDF · Max 5MB</span>
+            <span className="text-xs font-semibold text-gray-600">
+              Click to Upload
+            </span>
+            <span className="text-[11px] text-gray-400">
+              JPG, PNG, PDF · Max 5MB
+            </span>
             <input
               type="file"
               accept=".jpg,.jpeg,.png,.pdf"
               className="hidden"
-              onChange={(e) => setC({ ...c, id_file: e.target.files[0] || null })}
+              onChange={(e) =>
+                setC({ ...c, id_file: e.target.files[0] || null })
+              }
             />
           </label>
         ) : (

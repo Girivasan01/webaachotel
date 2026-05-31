@@ -1,22 +1,39 @@
-import React from 'react';
-import { pdf, Document, Page, Text, View } from '@react-pdf/renderer';
-import HotelInvoiceDocument from '../components/billing/HotelInvoiceDocument';
+import React from "react";
+import { pdf, Document, Page, Text, View } from "@react-pdf/renderer";
+import HotelInvoiceDocument from "../components/billing/HotelInvoiceDocument";
 
 /**
  * Generate Invoice PDF via Frontend using @react-pdf/renderer
  */
 const FallbackInvoiceDocument = ({ selectedBill }) => {
   const billId = selectedBill?.bill_id || selectedBill?.id || "N/A";
-  const checkIn = selectedBill?.check_in ? new Date(selectedBill.check_in).toLocaleString() : "N/A";
-  const checkOut = selectedBill?.check_out ? new Date(selectedBill.check_out).toLocaleString() : "N/A";
+  const checkIn =
+    selectedBill?.booking_check_in || selectedBill?.check_in
+      ? new Date(
+          selectedBill?.booking_check_in || selectedBill?.check_in,
+        ).toLocaleString()
+      : "N/A";
+  const checkOut =
+    selectedBill?.booking_check_out || selectedBill?.check_out
+      ? new Date(
+          selectedBill?.booking_check_out || selectedBill?.check_out,
+        ).toLocaleString()
+      : "N/A";
 
   return (
     <Document>
-      <Page size="A4" style={{ padding: 24, fontFamily: "Helvetica", fontSize: 10 }}>
+      <Page
+        size="A4"
+        style={{ padding: 24, fontFamily: "Helvetica", fontSize: 10 }}
+      >
         <Text style={{ fontSize: 16, marginBottom: 10 }}>HOTEL FRIDAY INN</Text>
         <Text style={{ marginBottom: 6 }}>Invoice #{billId}</Text>
-        <Text style={{ marginBottom: 6 }}>Guest: {selectedBill?.customer_name || "Guest"}</Text>
-        <Text style={{ marginBottom: 6 }}>Room: {selectedBill?.room_id || "N/A"}</Text>
+        <Text style={{ marginBottom: 6 }}>
+          Guest: {selectedBill?.customer_name || "Guest"}
+        </Text>
+        <Text style={{ marginBottom: 6 }}>
+          Room: {selectedBill?.room_id || "N/A"}
+        </Text>
         <Text style={{ marginBottom: 6 }}>Check In: {checkIn}</Text>
         <Text style={{ marginBottom: 6 }}>Check Out: {checkOut}</Text>
         <View style={{ marginTop: 16 }}>
@@ -67,10 +84,15 @@ export const generateInvoicePDF = async (props) => {
       const doc = <HotelInvoiceDocument {...props} />;
       blob = await pdf(doc).toBlob();
     } catch (primaryError) {
-      console.error("Primary invoice template failed, trying fallback template:", primaryError);
+      console.error(
+        "Primary invoice template failed, trying fallback template:",
+        primaryError,
+      );
 
       // 2) Fallback template avoids external font/image dependencies.
-      const fallbackDoc = <FallbackInvoiceDocument selectedBill={selectedBill} />;
+      const fallbackDoc = (
+        <FallbackInvoiceDocument selectedBill={selectedBill} />
+      );
       blob = await pdf(fallbackDoc).toBlob();
     }
 

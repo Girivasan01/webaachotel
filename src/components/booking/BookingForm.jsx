@@ -52,20 +52,28 @@ const getDefaultDateTimes = (clickedDate) => {
     month = clickedDate.getMonth() + 1;
     day = clickedDate.getDate();
   }
-
-  const checkIn = buildDateTimeLocal(year, month, day, 13, 0);
+  const now = localNow();
+  const isToday =
+    !clickedDate ||
+    (year === now.year && month === now.month && day === now.day);
+  const checkIn = buildDateTimeLocal(
+    year,
+    month,
+    day,
+    isToday ? now.hours : 13,
+    isToday ? now.minutes : 0,
+  );
   const nextDay = new Date(year, month - 1, day + 1);
   const checkOut = buildDateTimeLocal(
     nextDay.getFullYear(),
     nextDay.getMonth() + 1,
     nextDay.getDate(),
     11,
-    0
+    0,
   );
 
   return { check_in: checkIn, check_out: checkOut };
 };
-
 // STRING-BASED CONFLICT DETECTION
 
 const normaliseDateStr = (value) => {
@@ -87,8 +95,18 @@ const intervalsOverlap = (aStart, aEnd, bStart, bEnd) =>
 // DISPLAY HELPER
 
 const MONTHS = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
 ];
 
 const friendlyDate = (normStr) => {
@@ -98,7 +116,7 @@ const friendlyDate = (normStr) => {
   return `${pad(d)} ${MONTHS[m - 1]} ${y}`;
 };
 
-// ─── Searchable Customer Dropdown ───────────────────────────────────────────
+// ─── Searchable Customer Dropdown ───
 
 function CustomerDropdown({
   customers,
@@ -271,7 +289,7 @@ function CustomerDropdown({
   );
 }
 
-// ─── Main BookingForm ────────────────────────────────────────────────────────
+// ─── Main BookingForm ────────────────
 
 export default function BookingForm({
   initialData,
@@ -303,7 +321,7 @@ export default function BookingForm({
 
       const addonNames = Array.isArray(parsedAddOns)
         ? parsedAddOns.map((addon) =>
-            typeof addon === "string" ? addon : addon.description || addon.name
+            typeof addon === "string" ? addon : addon.description || addon.name,
           )
         : [];
 
@@ -342,7 +360,7 @@ export default function BookingForm({
   const getRoomConflict = (roomId) => {
     const roomBookings = calendarBookings.filter(
       (booking) =>
-        booking.room_id === roomId && booking.booking_id !== form.booking_id
+        booking.room_id === roomId && booking.booking_id !== form.booking_id,
     );
 
     if (roomBookings.length === 0) return null;
@@ -449,7 +467,7 @@ export default function BookingForm({
     const conflict = getRoomConflict(form.room_id);
     if (conflict) {
       setRoomWarning(
-        `⚠️ This room is already booked from ${friendlyDate(conflict.start)} to ${friendlyDate(conflict.end)}`
+        `⚠️ This room is already booked from ${friendlyDate(conflict.start)} to ${friendlyDate(conflict.end)}`,
       );
     } else {
       setRoomWarning("");
@@ -469,7 +487,7 @@ export default function BookingForm({
 
     const roomBookings = calendarBookings.filter(
       (booking) =>
-        booking.room_id === roomId && booking.booking_id !== form.booking_id
+        booking.room_id === roomId && booking.booking_id !== form.booking_id,
     );
 
     const formStart = normaliseDateStr(form.check_in);
@@ -495,7 +513,7 @@ export default function BookingForm({
 
     if (conflict) {
       setRoomWarning(
-        `⚠️ This room is already booked from ${friendlyDate(conflict.start)} to ${friendlyDate(conflict.end)}`
+        `⚠️ This room is already booked from ${friendlyDate(conflict.start)} to ${friendlyDate(conflict.end)}`,
       );
     } else {
       setRoomWarning("");
@@ -518,7 +536,7 @@ export default function BookingForm({
       const res = await axios.post(
         `${API_BASE_URL}/api/customers`,
         formData,
-        config
+        config,
       );
 
       toast.success("Customer created successfully!");
@@ -553,7 +571,7 @@ export default function BookingForm({
     const conflict = getRoomConflict(form.room_id);
     if (conflict) {
       toast.warning(
-        `Cannot save booking. Room is already booked from ${friendlyDate(conflict.start)} to ${friendlyDate(conflict.end)}`
+        `Cannot save booking. Room is already booked from ${friendlyDate(conflict.start)} to ${friendlyDate(conflict.end)}`,
       );
       return;
     }
@@ -729,8 +747,7 @@ export default function BookingForm({
             onChange={(e) =>
               setForm((prev) => ({
                 ...prev,
-                discount:
-                  e.target.value === "" ? "" : Number(e.target.value),
+                discount: e.target.value === "" ? "" : Number(e.target.value),
               }))
             }
             className="form-input min-h-11 w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm transition-all duration-200 ease-out focus:border-[#0A1B4D] focus:outline-none focus:ring-2 focus:ring-blue-100"

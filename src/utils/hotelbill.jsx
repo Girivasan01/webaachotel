@@ -33,7 +33,7 @@ try {
   console.warn("Poppins font registration failed, falling back to default.", e);
 }
 
-// ── Styles ───────────────────────────────────────────────────────────────────
+// ── Styles ─────────────
 const styles = StyleSheet.create({
   page: {
     padding: 6,
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
   },
 });
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ── Helpers ────────────
 const currency = (value) => `Rs ${Number(value || 0).toFixed(2)}`;
 
 const formatNow = (formatIST) => {
@@ -166,7 +166,7 @@ const getLogoSrc = () => {
 
 const THERMAL_WIDTH = 226;
 
-// ── Document component ───────────────────────────────────────────────────────
+// ── Document component ───────────────
 const KitchenBillDocument = ({
   billNo,
   roomNo,
@@ -185,9 +185,7 @@ const KitchenBillDocument = ({
       <View style={styles.ticket}>
         {/* Header */}
         <View style={styles.headerRow}>
-          {logoSrc ? (
-            <Image style={styles.logo} src={logoSrc} />
-          ) : null}
+          {logoSrc ? <Image style={styles.logo} src={logoSrc} /> : null}
           <View style={styles.hotelMeta}>
             <Text style={styles.title}>HOTEL FRIDAY INN</Text>
             <Text style={styles.address}>
@@ -256,14 +254,16 @@ const KitchenBillDocument = ({
           <Text style={styles.totalValue}>{currency(totalAmount)}</Text>
         </View>
 
-        <Text style={styles.footer}>Thank you for dining at Hotel Friday Inn.</Text>
+        <Text style={styles.footer}>
+          Thank you for dining at Hotel Friday Inn.
+        </Text>
         <Text style={styles.footer}>Please visit again.</Text>
       </View>
     </Page>
   </Document>
 );
 
-// ── Download helper ──────────────────────────────────────────────────────────
+// ── Download helper ────
 const triggerBlobDownload = (blob, filename) => {
   const blobUrl = URL.createObjectURL(blob);
   const link = document.createElement("a");
@@ -275,7 +275,7 @@ const triggerBlobDownload = (blob, filename) => {
   setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
 };
 
-// ── Main export ──────────────────────────────────────────────────────────────
+// ── Main export ────────
 export const generateKitchenBillPDF = async ({
   selectedBill,
   kitchenOrders = [],
@@ -288,15 +288,14 @@ export const generateKitchenBillPDF = async ({
     !Array.isArray(kitchenOrders) ||
     kitchenOrders.length === 0
   ) {
-    console.warn("generateKitchenBillPDF: missing selectedBill or kitchenOrders.");
+    console.warn(
+      "generateKitchenBillPDF: missing selectedBill or kitchenOrders.",
+    );
     return;
   }
 
   const billNo =
-    selectedBill.bill_id ||
-    selectedBill.id ||
-    selectedBill.booking_id ||
-    "N/A";
+    selectedBill.bill_id || selectedBill.id || selectedBill.booking_id || "N/A";
 
   const roomNo = selectedBill.room_id || "-";
 
@@ -317,7 +316,7 @@ export const generateKitchenBillPDF = async ({
   const issuedAt = formatNow(formatIST);
   const pageHeight = Math.max(
     360,
-    Math.min(1400, 250 + items.length * 18 + (gstIncluded ? 20 : 0))
+    Math.min(1400, 250 + items.length * 18 + (gstIncluded ? 20 : 0)),
   );
 
   // Verify logo is reachable; fall back to null if not
