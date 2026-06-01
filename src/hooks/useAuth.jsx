@@ -15,8 +15,6 @@ export const AuthProvider = ({ children }) => {
         const res = await auth.get("/auth/profile");
         setUser(res.data); // { id, role, name, ... }
       } catch (err) {
-        // Silently fail - user is not authenticated
-        console.log("No active session:", err.response?.status || "Network error");
         setUser(null);
       } finally {
         setLoading(false);

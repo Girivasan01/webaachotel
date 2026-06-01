@@ -65,11 +65,11 @@ const getDefaultDateTimes = (clickedDate) => {
   );
   const nextDay = new Date(year, month - 1, day + 1);
   const checkOut = buildDateTimeLocal(
-    nextDay.getFullYear(),
-    nextDay.getMonth() + 1,
-    nextDay.getDate(),
-    11,
-    0,
+    isToday ? year : nextDay.getFullYear(),
+    isToday ? month : nextDay.getMonth() + 1,
+    isToday ? day : nextDay.getDate(),
+    isToday ? now.hours : 11,
+    isToday ? now.minutes : 0,
   );
 
   return { check_in: checkIn, check_out: checkOut };
@@ -476,6 +476,18 @@ export default function BookingForm({
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === "check_out" && value) {
+      const now = localNow();
+      const todayStr = `${now.year}-${pad(now.month)}-${pad(now.day)}`;
+      const selectedDate = value.split("T")[0];
+      if (selectedDate === todayStr) {
+        const currentTime = `${pad(now.hours)}:${pad(now.minutes)}`;
+        setForm((prev) => ({ ...prev, [name]: `${todayStr}T${currentTime}` }));
+        return;
+      }
+    }
+
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 

@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     fontWeight: 600,
   },
   footer: {
-    marginTop: "auto",
+    marginTop: 12,
   },
   usersRow: {
     flexDirection: "row",
@@ -450,7 +450,9 @@ export const HotelInvoiceDocument = ({
               <Text style={styles.contact}>
                 Email:reservation@fridayinnyercaud.com
               </Text>
-              <Text style={styles.gstBanner}>GST NO: 33AMQPK7880E1ZP</Text>
+              {roomCat === "A frame wooden villa AC" && (
+                <Text style={styles.gstBanner}>GST NO: 33AMQPK7880E2ZO</Text>
+              )}
             </View>
           </View>
           <View style={styles.headerRight}>

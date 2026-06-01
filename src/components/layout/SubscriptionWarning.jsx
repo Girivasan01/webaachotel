@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { AlertTriangle, Lock, X } from "lucide-react";
+import { AlertTriangle, Lock, LogOut, X } from "lucide-react";
 import auth from "../../auth/axiosInstance";
+import { useAuth } from "../../hooks/useAuth";
 
 const WARNING_SHOWN_KEY = "subscription_warning_shown_date";
 
 export default function SubscriptionWarning() {
+  const { setUser } = useAuth();
   const [status, setStatus] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
   const [showBanner, setShowBanner] = useState(true);
@@ -52,11 +54,29 @@ export default function SubscriptionWarning() {
     setShowBanner(false);
   };
 
+  const handleLogout = async () => {
+    try {
+      await auth.post("/auth/logout", {}, { withCredentials: true });
+    } catch (error) {
+      console.error("Logout API error:", error);
+    }
+    localStorage.removeItem("token");
+    setUser(null);
+    window.location.replace("/login");
+  };
+
   if (!status) return null;
 
   if (status.type === "locked") {
     return (
       <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-gray-950/95 backdrop-blur-sm">
+        <button
+          onClick={handleLogout}
+          className="absolute top-4 right-4 flex items-center gap-2 px-4 py-2 bg-white text-red-600 text-sm font-semibold rounded-xl shadow-md hover:bg-red-50 transition-colors cursor-pointer"
+        >
+          <LogOut size={16} />
+          Logout
+        </button>
         <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 text-center">
           <div className="flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mx-auto mb-4">
             <Lock size={32} className="text-red-600" />
