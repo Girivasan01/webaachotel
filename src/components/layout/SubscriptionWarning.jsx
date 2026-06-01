@@ -43,7 +43,8 @@ export default function SubscriptionWarning() {
           setShowBanner(true);
         }
       } catch (err) {
-        console.error("Failed to check subscription:", err);
+        // Ignore subscription check failures to avoid breaking the UI when the studio DB is inaccessible.
+        console.warn("Subscription check skipped:", err?.message || err);
       }
     };
 
