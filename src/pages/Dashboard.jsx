@@ -12,7 +12,7 @@ import {
   Users,
   Calendar,
 } from "lucide-react";
-import { API_BASE_URL } from "../config";
+import auth from "../auth/axiosInstance";
 import {
   LineChart,
   Line,
@@ -53,9 +53,10 @@ export default function Dashboard() {
   const COLORS = ["#0A1A2F", "#1C3A5D", "#3A5D7D", "#5D7F9D"];
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/dashboard/summary`)
-      .then((res) => res.json())
-      .then((data) => {
+    auth
+      .get("/dashboard/summary")
+      .then((res) => {
+        const data = res.data;
         let kitchenStatusArray = [];
         if (data.kitchenStatus) {
           kitchenStatusArray = Array.isArray(data.kitchenStatus)
@@ -70,24 +71,24 @@ export default function Dashboard() {
       })
       .catch(console.error);
 
-    fetch(`${API_BASE_URL}/api/dashboard/bookings-trend?days=30`)
-      .then((res) => res.json())
-      .then((data) => setStats((prev) => ({ ...prev, bookingTrend: data || [] })))
+    auth
+      .get("/dashboard/bookings-trend", { params: { days: 30 } })
+      .then((res) => setStats((prev) => ({ ...prev, bookingTrend: res.data || [] })))
       .catch(console.error);
 
-    fetch(`${API_BASE_URL}/api/dashboard/revenue-by-category`)
-      .then((res) => res.json())
-      .then((data) => setStats((prev) => ({ ...prev, revenueByCategory: data || [] })))
+    auth
+      .get("/dashboard/revenue-by-category")
+      .then((res) => setStats((prev) => ({ ...prev, revenueByCategory: res.data || [] })))
       .catch(console.error);
 
-    fetch(`${API_BASE_URL}/api/dashboard/top-menu-items`)
-      .then((res) => res.json())
-      .then((data) => setStats((prev) => ({ ...prev, topMenuItems: data || [] })))
+    auth
+      .get("/dashboard/top-menu-items")
+      .then((res) => setStats((prev) => ({ ...prev, topMenuItems: res.data || [] })))
       .catch(console.error);
 
-    fetch(`${API_BASE_URL}/api/dashboard/kitchen-status`)
-      .then((res) => res.json())
-      .then((data) => setStats((prev) => ({ ...prev, kitchenStatus: data || [] })))
+    auth
+      .get("/dashboard/kitchen-status")
+      .then((res) => setStats((prev) => ({ ...prev, kitchenStatus: res.data || [] })))
       .catch(console.error);
   }, []);
 
