@@ -29,7 +29,10 @@ export default function RoomList() {
     setRoomsLoading(true);
     setRoomError("");
     try {
-      const res = await axios.get(API_ROOMS);
+      const token = localStorage.getItem("token");
+      const res = await axios.get(API_ROOMS, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setRooms(res.data || []);
     } catch (err) {
       console.error(err);
@@ -43,7 +46,10 @@ export default function RoomList() {
     setCategoriesLoading(true);
     setCategoryError("");
     try {
-      const res = await axios.get(API_ROOM_CATEGORIES);
+      const token = localStorage.getItem("token");
+      const res = await axios.get(API_ROOM_CATEGORIES, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setRoomCategories(res.data || []);
     } catch (err) {
       console.error(err);
@@ -59,7 +65,9 @@ export default function RoomList() {
   }, [fetchRooms, fetchRoomCategories]);
 
   const fallbackCategories = useMemo(() => {
-    return Array.from(new Set(rooms.map((room) => room.category).filter(Boolean)))
+    return Array.from(
+      new Set(rooms.map((room) => room.category).filter(Boolean)),
+    )
       .sort((a, b) => a.localeCompare(b))
       .map((name) => ({
         id: name,
@@ -68,7 +76,9 @@ export default function RoomList() {
       }));
   }, [rooms]);
 
-  const availableCategories = roomCategories.length ? roomCategories : fallbackCategories;
+  const availableCategories = roomCategories.length
+    ? roomCategories
+    : fallbackCategories;
 
   const filteredRooms = useMemo(() => {
     if (selectedCategory === "ALL") {
@@ -93,14 +103,22 @@ export default function RoomList() {
   const handleRoomSubmit = async (roomData) => {
     try {
       if (editingRoom) {
-        await axios.put(`${API_ROOMS}/${editingRoom.id}`, roomData);
+        const token = localStorage.getItem("token");
+        await axios.put(`${API_ROOMS}/${editingRoom.id}`, roomData, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
       } else {
-        await axios.post(API_ROOMS, roomData);
+        const token2 = localStorage.getItem("token");
+        await axios.post(API_ROOMS, roomData, {
+          headers: { Authorization: `Bearer ${token2}` },
+        });
       }
 
       closeRoomModal();
       await Promise.all([fetchRooms(), fetchRoomCategories()]);
-      toast.success(editingRoom ? "Room updated successfully" : "Room added successfully");
+      toast.success(
+        editingRoom ? "Room updated successfully" : "Room added successfully",
+      );
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.error || "Failed to save room");
@@ -113,7 +131,10 @@ export default function RoomList() {
     }
 
     try {
-      await axios.delete(`${API_ROOMS}/${id}`);
+      const token = localStorage.getItem("token");
+      await axios.delete(`${API_ROOMS}/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       await Promise.all([fetchRooms(), fetchRoomCategories()]);
       toast.success("Room deleted successfully");
     } catch (err) {
@@ -123,13 +144,25 @@ export default function RoomList() {
   };
 
   const handleCreateCategory = async (name) => {
-    await axios.post(API_ROOM_CATEGORIES, { name });
+    const token = localStorage.getItem("token");
+    await axios.post(
+      API_ROOM_CATEGORIES,
+      { name },
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
     await fetchRoomCategories();
   };
 
   const handleUpdateCategory = async (id, name) => {
-    const current = availableCategories.find((category) => String(category.id) === String(id));
-    await axios.put(`${API_ROOM_CATEGORIES}/${id}`, { name });
+    const current = availableCategories.find(
+      (category) => String(category.id) === String(id),
+    );
+    const token = localStorage.getItem("token");
+    await axios.put(
+      `${API_ROOM_CATEGORIES}/${id}`,
+      { name },
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
     await Promise.all([fetchRoomCategories(), fetchRooms()]);
 
     if (current?.name === selectedCategory) {
@@ -138,8 +171,13 @@ export default function RoomList() {
   };
 
   const handleDeleteCategory = async (id) => {
-    const current = availableCategories.find((category) => String(category.id) === String(id));
-    await axios.delete(`${API_ROOM_CATEGORIES}/${id}`);
+    const current = availableCategories.find(
+      (category) => String(category.id) === String(id),
+    );
+    const token = localStorage.getItem("token");
+    await axios.delete(`${API_ROOM_CATEGORIES}/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     await fetchRoomCategories();
 
     if (current?.name === selectedCategory) {
@@ -170,7 +208,10 @@ export default function RoomList() {
               >
                 <option value="ALL">All Categories</option>
                 {availableCategories.map((category) => (
-                  <option key={category.id || category.name} value={category.name}>
+                  <option
+                    key={category.id || category.name}
+                    value={category.name}
+                  >
                     {category.name}
                   </option>
                 ))}

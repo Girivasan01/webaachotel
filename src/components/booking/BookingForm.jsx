@@ -60,7 +60,7 @@ const getDefaultDateTimes = (clickedDate) => {
     year,
     month,
     day,
-    isToday ? now.hours : 13,
+    isToday ? now.hours : 12,
     isToday ? now.minutes : 0,
   );
   const nextDay = new Date(year, month - 1, day + 1);
@@ -406,14 +406,13 @@ export default function BookingForm({
     const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
+        const authHeaders = { headers: { Authorization: `Bearer ${token}` } };
         const [resCustomers, resRooms, resAddons, resCalendar] =
           await Promise.all([
-            axios.get(`${API_BASE_URL}/api/customers`),
-            axios.get(`${API_BASE_URL}/api/rooms`),
-            axios.get(`${API_BASE_URL}/api/addons`),
-            axios.get(`${API_BASE_URL}/api/bookings/calendar`, {
-              headers: { Authorization: `Bearer ${token}` },
-            }),
+            axios.get(`${API_BASE_URL}/api/customers`, authHeaders),
+            axios.get(`${API_BASE_URL}/api/rooms`, authHeaders),
+            axios.get(`${API_BASE_URL}/api/addons`, authHeaders),
+            axios.get(`${API_BASE_URL}/api/bookings/calendar`, authHeaders),
           ]);
 
         setCustomers(resCustomers.data);

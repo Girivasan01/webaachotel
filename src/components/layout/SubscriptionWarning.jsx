@@ -43,8 +43,7 @@ export default function SubscriptionWarning() {
           setShowBanner(true);
         }
       } catch (err) {
-        // Ignore subscription check failures to avoid breaking the UI when the studio DB is inaccessible.
-        console.warn("Subscription check skipped:", err?.message || err);
+        console.error("Failed to check subscription:", err);
       }
     };
 
@@ -183,16 +182,11 @@ export default function SubscriptionWarning() {
       {/* Banner below header */}
       {showBanner && (
         <div
-          className={`flex items-center justify-between gap-3 px-4 py-3 text-sm font-medium ${
-            isCritical
-              ? "bg-red-600 text-white"
-              : "bg-yellow-400 text-yellow-900"
-          }`}
-          style={{
-            marginLeft: "16rem",
-            width: "calc(100% - 16rem)",
-            marginTop: "6rem",
-          }}
+          className={`flex items-center justify-between gap-3 px-4 py-3 text-sm font-medium
+          mt-24 md:mt-24
+          ml-0 w-full
+          md:ml-64 md:w-[calc(100%-16rem)]
+          ${isCritical ? "bg-red-600 text-white" : "bg-yellow-400 text-yellow-900"}`}
         >
           <div className="flex items-center gap-3 flex-1">
             <AlertTriangle size={18} className="shrink-0" />

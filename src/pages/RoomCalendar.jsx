@@ -137,7 +137,6 @@ const getBookingForRoomOnDate = (room, dateString) => {
       return current >= checkIn;
     }
 
-    // FIXED: Use < checkOut (exclude checkout day as business rule)
     return current >= checkIn && current < checkOut;
   });
 };
@@ -411,25 +410,46 @@ const getBookingForRoomOnDate = (room, dateString) => {
   )}
 
   {showBookingModal && (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white p-6 rounded-2xl w-full max-w-3xl shadow-2xl">
-        <BookingForm
-          selectedDate={bookingDate}
-          initialData={{ room_id: selectedRoomForBooking?.id }}
-          onSubmit={async (data) => {
-            try {
-              const token = localStorage.getItem("token");
-              await axios.post(`${API_BASE_URL}/api/bookings`, data, {
-                headers: { Authorization: `Bearer ${token}` },
-              });
-              setShowBookingModal(false);
-              fetchCalendarData();
-            } catch (error) {
-              console.error("Booking failed:", error);
-            }
-          }}
-          onCancel={() => setShowBookingModal(false)}
-        />
+    <div className="fixed inset-0 bg-black/40 flex items-end justify-center sm:items-center z-50 p-0 sm:p-4">
+      <div className="bg-white w-full sm:max-w-3xl max-h-[92dvh] sm:max-h-[90vh] rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+        {/* Modal header */}
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 shrink-0">
+          <div>
+            <h2 className="text-lg font-bold text-[#0A1B4D]">Create Booking</h2>
+            {selectedRoomForBooking && (
+              <p className="text-xs text-gray-500 mt-0.5">
+                Room {selectedRoomForBooking.room_number} — {selectedRoomForBooking.category}
+              </p>
+            )}
+          </div>
+          <button
+            onClick={() => setShowBookingModal(false)}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors text-xl"
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+        {/* Scrollable body */}
+        <div className="overflow-y-auto flex-1 px-5 py-4">
+          <BookingForm
+            selectedDate={bookingDate}
+            initialData={{ room_id: selectedRoomForBooking?.id }}
+            onSubmit={async (data) => {
+              try {
+                const token = localStorage.getItem("token");
+                await axios.post(`${API_BASE_URL}/api/bookings`, data, {
+                  headers: { Authorization: `Bearer ${token}` },
+                });
+                setShowBookingModal(false);
+                fetchCalendarData();
+              } catch (error) {
+                console.error("Booking failed:", error);
+              }
+            }}
+            onCancel={() => setShowBookingModal(false)}
+          />
+        </div>
       </div>
     </div>
   )}

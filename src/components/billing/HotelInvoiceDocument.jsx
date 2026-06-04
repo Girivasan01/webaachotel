@@ -348,8 +348,12 @@ export const HotelInvoiceDocument = ({
   const roomCat = selectedBill?.category || "N/A";
   const pax = selectedBill?.pax || "2";
   const nationality = "Indian";
-  const checkInStr = formatDateTime(selectedBill?.check_in);
-  const checkOutStr = formatDateTime(selectedBill?.check_out);
+  const checkInStr = formatDateTime(
+    selectedBill?.check_in || selectedBill?.booking_check_in,
+  );
+  const checkOutStr = formatDateTime(
+    selectedBill?.check_out || selectedBill?.booking_check_out,
+  );
 
   const numDays = (() => {
     if (selectedBill?.check_in && selectedBill?.check_out) {
@@ -373,7 +377,10 @@ export const HotelInvoiceDocument = ({
   })();
 
   const lineItemDateOnly = formatDateOnly(
-    selectedBill?.check_out || selectedBill?.check_in || new Date(),
+    selectedBill?.check_out ||
+      selectedBill?.booking_check_out ||
+      selectedBill?.check_in ||
+      new Date(),
   );
 
   const roomPrice = Number(form?.room_price || 0);
