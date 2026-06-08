@@ -1,12 +1,13 @@
-const rawApiUrl =
-  import.meta.env.VITE_API_URL ||
-  (import.meta.env.DEV ? "https://hotellockback.onrender.com/api" : "");
+const isLocalHost =
+  typeof window !== "undefined" &&
+  (window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1");
 
-if (!rawApiUrl) {
-  throw new Error(
-    "VITE_API_URL is not configured. Set it in HotelFrontend/.env for production builds.",
-  );
-}
+const defaultApiUrl = isLocalHost
+  ? "http://localhost:5000/api"
+  : "https://hotellockback.onrender.com/api";
+
+const rawApiUrl = import.meta.env.VITE_API_URL || defaultApiUrl;
 
 const normalizedApiUrl = rawApiUrl.replace(/\/+$/, "");
 const normalizedApiOrigin = normalizedApiUrl.replace(/\/api$/, "");

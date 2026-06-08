@@ -457,9 +457,8 @@ export const HotelInvoiceDocument = ({
               <Text style={styles.contact}>
                 Email:reservation@fridayinnyercaud.com
               </Text>
-              {roomCat === "A frame wooden villa AC" && (
-                <Text style={styles.gstBanner}>GST NO: 33AMQPK7880E2ZO</Text>
-              )}
+
+              <Text style={styles.gstBanner}>GST NO: 33AMQPK7880E2ZO</Text>
             </View>
           </View>
           <View style={styles.headerRight}>

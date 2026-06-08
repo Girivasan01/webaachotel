@@ -52,24 +52,17 @@ const getDefaultDateTimes = (clickedDate) => {
     month = clickedDate.getMonth() + 1;
     day = clickedDate.getDate();
   }
-  const now = localNow();
-  const isToday =
-    !clickedDate ||
-    (year === now.year && month === now.month && day === now.day);
-  const checkIn = buildDateTimeLocal(
-    year,
-    month,
-    day,
-    isToday ? now.hours : 12,
-    isToday ? now.minutes : 0,
-  );
+
+  // Check-in is always fixed at 12:00 PM on the selected/today's date
+  const checkIn = buildDateTimeLocal(year, month, day, 12, 0);
+
   const nextDay = new Date(year, month - 1, day + 1);
   const checkOut = buildDateTimeLocal(
-    isToday ? year : nextDay.getFullYear(),
-    isToday ? month : nextDay.getMonth() + 1,
-    isToday ? day : nextDay.getDate(),
-    isToday ? now.hours : 11,
-    isToday ? now.minutes : 0,
+    nextDay.getFullYear(),
+    nextDay.getMonth() + 1,
+    nextDay.getDate(),
+    12,
+    0,
   );
 
   return { check_in: checkIn, check_out: checkOut };

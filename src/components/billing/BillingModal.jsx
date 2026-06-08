@@ -60,23 +60,27 @@ const BillingModal = ({
 
     const nextRoomCharges = (selectedBill.lines?.room ?? []).reduce(
       (sum, item) => sum + Number(item?.total || 0),
-      0
+      0,
     );
 
     const nextKitchenCharges = (selectedBill.lines?.kitchen ?? []).reduce(
       (sum, item) => sum + Number(item?.total || 0),
-      0
+      0,
     );
 
     const nextBackendAddOnsTotal = (selectedBill.lines?.addon ?? []).reduce(
       (sum, item) => sum + Number(item?.total || 0),
-      0
+      0,
     );
 
     const newAddOnsTotal = (safeForm.add_ons ?? []).reduce(
-      (sum, addon) =>
-        sum + Number(addon.price || 0) * Number(addon.qty || 1),
-      0
+      (sum, addon) => sum + Number(addon.price || 0) * Number(addon.qty || 1),
+      0,
+    );
+
+    // Derive per-night rate from the room line item's unit_price for correct GST tier
+    const roomLineUnitPrice = Number(
+      selectedBill.lines?.room?.[0]?.unit_price ?? 0,
     );
 
     return {
@@ -84,32 +88,32 @@ const BillingModal = ({
       kitchenCharges: nextKitchenCharges,
       backendAddOnsTotal: nextBackendAddOnsTotal,
       addOnsTotal: nextBackendAddOnsTotal + newAddOnsTotal,
-      roomGstRate: getRoomGstRate(nextRoomCharges),
+      roomGstRate: getRoomGstRate(roomLineUnitPrice || nextRoomCharges),
     };
   }, [selectedBill, safeForm]);
 
   if (!open || !selectedBill || !form) return null;
 
   const safeGst = {
-    room: Number(selectedBill?.totals?.gst_rates?.room ?? roomGstRate),
+    room: Number(selectedBill?.totals?.gst_rates?.room || roomGstRate),
     kitchen: Number(
-      selectedBill?.totals?.gst_rates?.kitchen ?? DEFAULT_GST_RATES.kitchen
+      selectedBill?.totals?.gst_rates?.kitchen || DEFAULT_GST_RATES.kitchen,
     ),
   };
 
-const isWithGST = gstMode === "with";
-const subtotal = roomCharges + kitchenCharges + addOnsTotal;
-const appliedDiscount =
-  Number(safeForm.discount || 0) + Number(guestDiscount || 0);
-const discountedRoomCharges = roomCharges - appliedDiscount;
-const roomGst = isWithGST ? discountedRoomCharges * safeGst.room : 0;
-const kitchenGst = isWithGST ? kitchenCharges * safeGst.kitchen : 0;
-const totalGst = roomGst + kitchenGst;
-const subtotalWithGst = subtotal + totalGst;
+  const isWithGST = gstMode === "with";
+  const subtotal = roomCharges + kitchenCharges + addOnsTotal;
+  const appliedDiscount =
+    Number(safeForm.discount || 0) + Number(guestDiscount || 0);
+  const discountedRoomCharges = roomCharges - appliedDiscount;
+  const roomGst = isWithGST ? discountedRoomCharges * safeGst.room : 0;
+  const kitchenGst = isWithGST ? kitchenCharges * safeGst.kitchen : 0;
+  const totalGst = roomGst + kitchenGst;
+  const subtotalWithGst = subtotal + totalGst;
   const totalAmount = isWithGST ? subtotalWithGst : subtotal;
   const advancePaid = Number(selectedBill.advance_paid || 0);
   const balanceAmount = Number(
-    (totalAmount - appliedDiscount - advancePaid).toFixed(2)
+    (totalAmount - appliedDiscount - advancePaid).toFixed(2),
   );
 
   const roomGstPercent = Number((safeGst.room * 100).toFixed(2));
@@ -255,13 +259,13 @@ const subtotalWithGst = subtotal + totalGst;
 
           {isWithGST && (
             <div className="flex items-center gap-4 p-3 bg-white rounded-lg border border-gray-200">
-              <span className="text-sm font-medium">GST applied to final bill</span>
+              <span className="text-sm font-medium">
+                GST applied to final bill
+              </span>
               <span className="text-xs text-gray-600">
                 (Room: {roomGstPercent}%{" "}
-                {roomCharges > DEFAULT_GST_RATES.room.threshold
-                  ? "- Above Rs7500"
-                  : "- Below Rs7500"}
-                , Kitchen: {kitchenGstPercent}%)
+                {roomCharges >= 7500 ? "- Above Rs7500" : "- Below Rs7500"},
+                Kitchen: {kitchenGstPercent}%)
               </span>
             </div>
           )}
@@ -272,7 +276,10 @@ const subtotalWithGst = subtotal + totalGst;
                 Saved Add-ons (from booking)
               </label>
               {selectedBill.lines.addon.map((addon, index) => (
-                <div key={index} className="flex justify-between text-sm text-gray-600">
+                <div
+                  key={index}
+                  className="flex justify-between text-sm text-gray-600"
+                >
                   <span>{addon.description ?? `Add-on ${index + 1}`}</span>
                   <span>Rs{Number(addon.total || 0).toFixed(2)}</span>
                 </div>
@@ -291,7 +298,7 @@ const subtotalWithGst = subtotal + totalGst;
                   value={addon.name}
                   onChange={(e) => {
                     const selected = availableAddOns.find(
-                      (item) => item.name === e.target.value
+                      (item) => item.name === e.target.value,
                     );
                     const updated = [...safeForm.add_ons];
                     updated[index] = {
@@ -315,7 +322,12 @@ const subtotalWithGst = subtotal + totalGst;
                     type="number"
                     value={addon.qty}
                     onChange={(e) =>
-                      handleFormChange("qty", Number(e.target.value), index, "add_on")
+                      handleFormChange(
+                        "qty",
+                        Number(e.target.value),
+                        index,
+                        "add_on",
+                      )
                     }
                     className="w-full sm:w-16 border rounded-lg p-2 text-sm"
                     placeholder="Qty"
@@ -339,7 +351,10 @@ const subtotalWithGst = subtotal + totalGst;
               onClick={() =>
                 setForm({
                   ...form,
-                  add_ons: [...safeForm.add_ons, { name: "", qty: 1, price: 0 }],
+                  add_ons: [
+                    ...safeForm.add_ons,
+                    { name: "", qty: 1, price: 0 },
+                  ],
                 })
               }
               className="px-3 py-1 ml-2 bg-[#0A1A2F] text-white rounded-lg text-sm"
@@ -350,30 +365,58 @@ const subtotalWithGst = subtotal + totalGst;
         </div>
 
         <div className="flex-1 bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100 xl:max-h-[80vh] overflow-auto space-y-2">
-          <h3 className="font-semibold text-[#0A1A2F] text-lg mb-2">Bill Preview</h3>
+          <h3 className="font-semibold text-[#0A1A2F] text-lg mb-2">
+            Bill Preview
+          </h3>
 
           <div className="text-sm text-gray-700 space-y-1">
-            <p><b>Booking ID:</b> {selectedBill.booking_id}</p>
-            <p><b>Customer:</b> {selectedBill.customer_name}</p>
-            <p className="text-xs text-gray-500">Customer ID: {selectedBill.customer_id}</p>
-            {gstNumber && <p><b>GST Number:</b> {gstNumber}</p>}
-            <p><b>Room:</b> {selectedBill.room_number || "N/A"}</p>
-            <p><b>Room Category:</b> {selectedBill.category || "N/A"}</p>
-            <p><b>Check-in:</b> {formatIST(selectedBill.check_in)}</p>
-            <p><b>Check-out:</b> {formatIST(selectedBill.check_out)}</p>
+            <p>
+              <b>Booking ID:</b> {selectedBill.booking_id}
+            </p>
+            <p>
+              <b>Customer:</b> {selectedBill.customer_name}
+            </p>
+            <p className="text-xs text-gray-500">
+              Customer ID: {selectedBill.customer_id}
+            </p>
+            {gstNumber && (
+              <p>
+                <b>GST Number:</b> {gstNumber}
+              </p>
+            )}
+            <p>
+              <b>Room:</b> {selectedBill.room_number || "N/A"}
+            </p>
+            <p>
+              <b>Room Category:</b> {selectedBill.category || "N/A"}
+            </p>
+            <p>
+              <b>Check-in:</b> {formatIST(selectedBill.check_in)}
+            </p>
+            <p>
+              <b>Check-out:</b> {formatIST(selectedBill.check_out)}
+            </p>
 
             <hr className="my-2 border-gray-200" />
 
-            <p><b>Room Charges:</b> Rs{roomCharges.toFixed(2)}</p>
-            <p><b>Kitchen Charges:</b> Rs{kitchenCharges.toFixed(2)}</p>
+            <p>
+              <b>Room Charges:</b> Rs{roomCharges.toFixed(2)}
+            </p>
+            <p>
+              <b>Kitchen Charges:</b> Rs{kitchenCharges.toFixed(2)}
+            </p>
 
             {backendAddOnsTotal > 0 && (
-              <p><b>Add-ons (saved):</b> Rs{backendAddOnsTotal.toFixed(2)}</p>
+              <p>
+                <b>Add-ons (saved):</b> Rs{backendAddOnsTotal.toFixed(2)}
+              </p>
             )}
 
             {safeForm.add_ons.length > 0 && (
               <>
-                <p><b>New Add-ons:</b></p>
+                <p>
+                  <b>New Add-ons:</b>
+                </p>
                 <ul className="list-disc ml-5">
                   {safeForm.add_ons.map((addon, index) => (
                     <li key={index}>
@@ -384,35 +427,52 @@ const subtotalWithGst = subtotal + totalGst;
               </>
             )}
 
-            <p><b>Subtotal:</b> Rs{subtotal.toFixed(2)}</p>
+            <p>
+              <b>Subtotal:</b> Rs{subtotal.toFixed(2)}
+            </p>
             {isWithGST && (
               <>
                 {roomGst > 0 && (
-                  <p><b>Room GST ({roomGstPercent}%):</b> Rs{roomGst.toFixed(2)}</p>
+                  <p>
+                    <b>Room GST ({roomGstPercent}%):</b> Rs{roomGst.toFixed(2)}
+                  </p>
                 )}
                 {kitchenGst > 0 && (
-                  <p><b>Kitchen GST ({kitchenGstPercent}%):</b> Rs{kitchenGst.toFixed(2)}</p>
+                  <p>
+                    <b>Kitchen GST ({kitchenGstPercent}%):</b> Rs
+                    {kitchenGst.toFixed(2)}
+                  </p>
                 )}
-                <p><b>Subtotal with GST:</b> Rs{subtotalWithGst.toFixed(2)}</p>
+                <p>
+                  <b>Subtotal with GST:</b> Rs{subtotalWithGst.toFixed(2)}
+                </p>
               </>
             )}
 
             <hr className="my-2 border-gray-300" />
 
             <p className="flex justify-between">
-              <span><b>{isWithGST ? "Total Amount (Incl. GST):" : "Total Amount:"}</b></span>
+              <span>
+                <b>
+                  {isWithGST ? "Total Amount (Incl. GST):" : "Total Amount:"}
+                </b>
+              </span>
               <span>Rs{totalAmount.toFixed(2)}</span>
             </p>
 
             {appliedDiscount > 0 && (
               <p className="flex justify-between text-orange-600">
-                <span><b>Discount:</b></span>
+                <span>
+                  <b>Discount:</b>
+                </span>
                 <span>- Rs{appliedDiscount.toFixed(2)}</span>
               </p>
             )}
 
             <p className="flex justify-between text-green-600 font-medium">
-              <span><b>Advance Paid:</b></span>
+              <span>
+                <b>Advance Paid:</b>
+              </span>
               <span>- Rs{advancePaid.toFixed(2)}</span>
             </p>
 
@@ -454,7 +514,12 @@ const subtotalWithGst = subtotal + totalGst;
               }}
               className="flex items-center justify-center gap-2 w-full py-2 bg-[#0A1A2F] hover:bg-[#14273F] text-white rounded-lg font-medium text-sm transition-all active:scale-95"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
