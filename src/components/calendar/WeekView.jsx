@@ -75,17 +75,22 @@ export default function WeekView({
                 {rooms.map((room) => {
                   const booking = getBookingForRoomOnDate(room, dateStr);
                   const isBooked = !!booking;
+                  const isCheckedOut =
+                    isPast && !isToday && isBooked && booking.status === "Checked-out";
 
                   return (
                     <button
                       key={room.id}
                       onClick={() => onRoomDateClick(room, date)}
-                      title={`Room ${room.room_number} - ${isBooked ? "Booked" : "Available"}`}
+                      title={`Room ${room.room_number} - ${isCheckedOut ? "Checked-out" : isBooked ? "Booked" : "Available"}`}
                       className={`text-[10px] font-bold px-2 py-0.5 rounded-lg text-white shrink-0
                         transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 ${
-                          isBooked
-                            ? "bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
-                            : "bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700"
+                          isCheckedOut
+                            ? "bg-gradient-to-br from-red-300 to-red-400 hover:from-red-400 hover:to-red-500"
+
+                            : isBooked
+                              ? "bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
+                              : "bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700"
                         }`}
                     >
                       {room.room_number}

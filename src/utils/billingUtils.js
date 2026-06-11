@@ -1,16 +1,7 @@
-/**
- * Centralized billing constants and utility functions
- */
-
-// Default GST rates (no API call needed)
 export const DEFAULT_GST_RATES = {
-  room: {
-    low: 0.05, // 5% for room price < 7500
-    high: 0.18, // 18% for room price >= 7500
-    threshold: 7499, // Threshold: > 7499 means >= 7500 applies 18%
-  },
-  kitchen: 0.05, // 5% fixed
-  addon: 0, // add-ons are non-taxable
+  room: 0.05,     // 5% flat for all room prices
+  kitchen: 0.05,  // 5% fixed
+  addon: 0,       // add-ons are non-taxable
 };
 
 /**
@@ -42,18 +33,8 @@ export const formatIST = (dateStr) => {
 
 const getMonthName = (month) => {
   const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
   ];
   return months[Number(month) - 1] || month;
 };

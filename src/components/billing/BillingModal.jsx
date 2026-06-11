@@ -34,13 +34,6 @@ const BillingModal = ({
 
   const safeForm = form || EMPTY_FORM;
 
-  const getRoomGstRate = (roomPrice) => {
-    const price = Number(roomPrice || 0);
-    return price > DEFAULT_GST_RATES.room.threshold
-      ? DEFAULT_GST_RATES.room.high
-      : DEFAULT_GST_RATES.room.low;
-  };
-
   const {
     roomCharges,
     kitchenCharges,
@@ -54,7 +47,7 @@ const BillingModal = ({
         kitchenCharges: 0,
         backendAddOnsTotal: 0,
         addOnsTotal: 0,
-        roomGstRate: DEFAULT_GST_RATES.room.low,
+        roomGstRate: DEFAULT_GST_RATES.room,
       };
     }
 
@@ -78,17 +71,12 @@ const BillingModal = ({
       0,
     );
 
-    // Derive per-night rate from the room line item's unit_price for correct GST tier
-    const roomLineUnitPrice = Number(
-      selectedBill.lines?.room?.[0]?.unit_price ?? 0,
-    );
-
     return {
       roomCharges: nextRoomCharges,
       kitchenCharges: nextKitchenCharges,
       backendAddOnsTotal: nextBackendAddOnsTotal,
       addOnsTotal: nextBackendAddOnsTotal + newAddOnsTotal,
-      roomGstRate: getRoomGstRate(roomLineUnitPrice || nextRoomCharges),
+      roomGstRate: DEFAULT_GST_RATES.room,
     };
   }, [selectedBill, safeForm]);
 
@@ -263,9 +251,7 @@ const BillingModal = ({
                 GST applied to final bill
               </span>
               <span className="text-xs text-gray-600">
-                (Room: {roomGstPercent}%{" "}
-                {roomCharges >= 7500 ? "- Above Rs7500" : "- Below Rs7500"},
-                Kitchen: {kitchenGstPercent}%)
+                (Room: {roomGstPercent}%, Kitchen: {kitchenGstPercent}%)
               </span>
             </div>
           )}
@@ -391,10 +377,28 @@ const BillingModal = ({
               <b>Room Category:</b> {selectedBill.category || "N/A"}
             </p>
             <p>
-              <b>Check-in:</b> {formatIST(selectedBill.check_in)}
+              <b>Check-in:</b> {(() => {
+                const raw = selectedBill.check_in;
+                if (!raw) return "N/A";
+                const dateOnly = String(raw).split("T")[0].split(" ")[0];
+                const [y, m, d] = dateOnly.split("-");
+                const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+                return `${d} ${months[Number(m) - 1]} ${y}, 01:00 PM`;
+              })()}
             </p>
             <p>
-              <b>Check-out:</b> {formatIST(selectedBill.check_out)}
+              <b>Check-out:</b> {(() => {
+                const raw = selectedBill.check_out;
+                if (!raw) return "N/A";
+                const dateOnly = String(raw).split("T")[0].split(" ")[0];
+                const [y, m, d] = dateOnly.split("-");
+                const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+                const billingDate = new Date(selectedBill.created_at || new Date());
+                const timeStr = billingDate.toLocaleTimeString("en-IN", {
+                  hour: "2-digit", minute: "2-digit", hour12: true, timeZone: "Asia/Kolkata"
+                }).toUpperCase();
+                return `${d} ${months[Number(m) - 1]} ${y}, 11:00 AM`;
+              })()}
             </p>
 
             <hr className="my-2 border-gray-200" />
@@ -536,7 +540,7 @@ const BillingModal = ({
                 className="w-full py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium text-sm transition-all active:scale-95"
               >
                 Delete Bill
-              </button>
+          </button>
             )}
           </div>
         </div>

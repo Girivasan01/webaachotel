@@ -261,12 +261,6 @@ const styles = StyleSheet.create({
     borderTopColor: BORDER_COLOR,
     alignItems: "center",
   },
-  qrLabel: {
-    fontSize: 9,
-    fontWeight: 600,
-    marginBottom: 8,
-    textAlign: "center",
-  },
   qrContainer: {
     flexDirection: "row",
     justifyContent: "center",
@@ -304,6 +298,21 @@ export const HotelInvoiceDocument = ({
   gstNumber,
   formatIST,
 }) => {
+  const monthNames = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
   const getISTDateParts = (value) => {
     if (!value) return null;
     const date = value instanceof Date ? value : new Date(value);
@@ -343,38 +352,46 @@ export const HotelInvoiceDocument = ({
     return `${parts.day} ${parts.month} ${parts.year}, ${parts.hour}:${parts.minute} ${parts.dayPeriod}`;
   };
 
+  const billDateStr = formatDateTime(selectedBill?.created_at || new Date());
+
+  const checkInDateStr = (() => {
+    const raw = selectedBill?.check_in || selectedBill?.booking_check_in;
+    if (!raw) return "N/A";
+    const dateOnly = String(raw).split("T")[0].split(" ")[0];
+    if (!dateOnly) return "N/A";
+    const [year, month, day] = dateOnly.split("-");
+    const monthName = monthNames[Number(month) - 1] || month;
+    return `${day} ${monthName} ${year}, 01:00 PM`;
+  })();
+
+  const checkOutStr = (() => {
+    const rawDate = selectedBill?.check_out || selectedBill?.booking_check_out;
+    if (!rawDate) return "N/A";
+    const dateOnly = String(rawDate).split("T")[0].split(" ")[0];
+    if (!dateOnly) return "N/A";
+    const [year, month, day] = dateOnly.split("-");
+    const monthName = monthNames[Number(month) - 1] || month;
+
+    const billingTime = getISTDateParts(selectedBill?.created_at || new Date());
+    if (!billingTime) return `${day} ${monthName} ${year}`;
+    return `${day} ${monthName} ${year}, 11:00 AM`;
+  })();
+
+  const numDays = (() => {
+    const rawIn = selectedBill?.check_in || selectedBill?.booking_check_in;
+    const rawOut = selectedBill?.check_out || selectedBill?.booking_check_out;
+    if (!rawIn || !rawOut) return 1;
+    const dateOnly = (s) => String(s).split("T")[0].split(" ")[0];
+    const d1 = new Date(dateOnly(rawIn));
+    const d2 = new Date(dateOnly(rawOut));
+    if (isNaN(d1) || isNaN(d2)) return 1;
+    return Math.max(Math.round((d2 - d1) / (1000 * 60 * 60 * 24)), 1);
+  })();
+
   const billNo = selectedBill?.bill_id || selectedBill?.id || "N/A";
-  const dateStr = formatDateTime(new Date());
   const roomCat = selectedBill?.category || "N/A";
   const pax = selectedBill?.pax || "2";
   const nationality = "Indian";
-  const checkInStr = formatDateTime(
-    selectedBill?.check_in || selectedBill?.booking_check_in,
-  );
-  const checkOutStr = formatDateTime(
-    selectedBill?.check_out || selectedBill?.booking_check_out,
-  );
-
-  const numDays = (() => {
-    if (selectedBill?.check_in && selectedBill?.check_out) {
-      const d1 = new Date(
-        selectedBill.booking_check_in || selectedBill.check_in,
-      );
-      const d2 = new Date(
-        selectedBill.booking_check_out || selectedBill.check_out,
-      );
-      const msPerDay = 1000 * 60 * 60 * 24;
-
-      const diffDays = Math.round(
-        (new Date(d2.getFullYear(), d2.getMonth(), d2.getDate()) -
-          new Date(d1.getFullYear(), d1.getMonth(), d1.getDate())) /
-          msPerDay,
-      );
-
-      return Math.max(diffDays, 1);
-    }
-    return 1;
-  })();
 
   const lineItemDateOnly = formatDateOnly(
     selectedBill?.check_out ||
@@ -385,7 +402,6 @@ export const HotelInvoiceDocument = ({
 
   const roomPrice = Number(form?.room_price || 0);
 
-  // Consolidate Saved Add-ons (from DB) and New Add-ons (from session)
   const savedAddOns = (selectedBill?.lines?.addon || []).map((a) => ({
     name: a.description || "Add-on",
     price: Number(a.total || 0),
@@ -408,21 +424,15 @@ export const HotelInvoiceDocument = ({
     kitchenItems = selectedBill.lines.kitchen;
   }
 
-  // ── GST amounts (each kept separate) ─────────────
   const roomGstAmount = Number(gstAmounts?.room || 0);
   const kitchenGstAmount = Number(gstAmounts?.kitchen || 0);
   const totalGstAmount = roomGstAmount + kitchenGstAmount;
 
-  // ── GST rate labels ────
   const roomGstPct = ((gstRates?.room || 0) * 100).toFixed(1);
   const kitchenGstPct = (
     (gstRates?.kitchen || gstRates?.room || 0) * 100
   ).toFixed(1);
 
-  const roomDiscountVal = Number(form?.discount || 0);
-  const discountedRoomTariff = Math.max(0, roomPrice - roomDiscountVal);
-
-  const totalGrossValue = subtotal;
   const billedByName =
     selectedBill?.billed_by_name ||
     selectedBill?.billed_by?.name ||
@@ -440,7 +450,6 @@ export const HotelInvoiceDocument = ({
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* 1. Header */}
         <View style={styles.headerContainer}>
           <View style={styles.headerLeft}>
             <Image style={styles.logo} src="/FridayInnLogo.png" />
@@ -457,8 +466,12 @@ export const HotelInvoiceDocument = ({
               <Text style={styles.contact}>
                 Email:reservation@fridayinnyercaud.com
               </Text>
-
-              <Text style={styles.gstBanner}>GST NO: 33AMQPK7880E2ZO</Text>
+              <Text style={styles.gstBanner}>
+                GST NO:{" "}
+                {selectedBill?.category === "A frame wooden villa AC"
+                  ? "33AMQPK7880E2ZO"
+                  : "33AMQPK7880E1ZP"}
+              </Text>
             </View>
           </View>
           <View style={styles.headerRight}>
@@ -468,7 +481,6 @@ export const HotelInvoiceDocument = ({
           </View>
         </View>
 
-        {/* 2. Guest & Stay Details */}
         <View style={styles.detailsContainer}>
           <View style={styles.guestLeftBox}>
             <Text>
@@ -490,7 +502,7 @@ export const HotelInvoiceDocument = ({
           <View style={styles.guestRightBox}>
             <View style={styles.rightTableRow}>
               <Text style={styles.detailLabelSingle}>Date</Text>
-              <Text style={styles.detailValueSingle}>{dateStr}</Text>
+              <Text style={styles.detailValueSingle}>{billDateStr}</Text>
             </View>
             <View style={styles.rightTableRow}>
               <Text style={styles.detailLabel}>Room</Text>
@@ -508,7 +520,7 @@ export const HotelInvoiceDocument = ({
             </View>
             <View style={styles.rightTableRow}>
               <Text style={styles.detailLabelSingle}>Check In</Text>
-              <Text style={styles.detailValueSingle}>{checkInStr}</Text>
+              <Text style={styles.detailValueSingle}>{checkInDateStr}</Text>
             </View>
             <View style={styles.rightTableRow}>
               <Text style={styles.detailLabelSingle}>Check Out</Text>
@@ -523,7 +535,6 @@ export const HotelInvoiceDocument = ({
           </View>
         </View>
 
-        {/* 3. Billing Particulars Table */}
         <View style={styles.table}>
           <View style={styles.tableHeader}>
             <Text style={[styles.col1, styles.colHeader]}>DATE</Text>
@@ -533,7 +544,6 @@ export const HotelInvoiceDocument = ({
             <Text style={[styles.col5, styles.colHeader]}>AMOUNT</Text>
           </View>
 
-          {/* Room Tariff */}
           <View style={styles.tableRow}>
             <Text style={styles.col1}>{lineItemDateOnly}</Text>
             <Text style={styles.col2}>Room Tariff</Text>
@@ -542,7 +552,6 @@ export const HotelInvoiceDocument = ({
             <Text style={styles.col5}>{roomPrice.toFixed(2)}</Text>
           </View>
 
-          {/* Kitchen Items */}
           {kitchenItems.map((item, i) => {
             const itemTotal = Number(item.subtotal || item.total || 0);
             return (
@@ -559,7 +568,6 @@ export const HotelInvoiceDocument = ({
             );
           })}
 
-          {/* All Add-ons (Saved + New) */}
           {allAddOns.map((addon, i) => {
             const addonTotal = Number(addon.price) * Number(addon.qty);
             return (
@@ -575,12 +583,6 @@ export const HotelInvoiceDocument = ({
             );
           })}
 
-          {/* ── SEPARATE GST ROWS ──────────────
-              GST stays applied internally, but add-ons are non-taxable.
-              We show only room tariff GST and kitchen GST when applicable.
-          ────────── */}
-
-          {/* Row 1: Room Tariff GST */}
           {gstIncluded && roomGstAmount > 0 && (
             <View style={styles.tableRow}>
               <Text style={styles.col1}>{lineItemDateOnly}</Text>
@@ -591,7 +593,6 @@ export const HotelInvoiceDocument = ({
             </View>
           )}
 
-          {/* Row 2: Kitchen Orders GST */}
           {gstIncluded && kitchenGstAmount > 0 && (
             <View style={styles.tableRow}>
               <Text style={styles.col1}>{lineItemDateOnly}</Text>
@@ -604,7 +605,6 @@ export const HotelInvoiceDocument = ({
             </View>
           )}
 
-          {/* Summary rows — totalGstAmount already covers all three */}
           <View style={styles.tableRow}>
             <Text style={styles.col1}></Text>
             <Text
@@ -692,7 +692,6 @@ export const HotelInvoiceDocument = ({
           </View>
         </View>
 
-        {/* 4. Footer */}
         <View style={styles.footer}>
           <View style={styles.usersRow}>
             <Text>

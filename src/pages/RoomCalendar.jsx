@@ -114,32 +114,25 @@ export default function RoomCalendar() {
   };
 
   /* ================= GET BOOKING STATUS ================= */
-/**
- * Get booking for specific room on specific date
- * IMPORTANT: Room is OCCUPIED from check_in (inclusive) to check_out (exclusive)
- * Example: check_in=2024-02-28, check_out=2024-03-01
- * → 2024-02-28: occupied ✅, 2024-02-29: occupied ✅, 2024-03-01: FREE ✅
- */
-const getBookingForRoomOnDate = (room, dateString) => {
-  return bookings.find((b) => {
-    if (b.room_id !== room.id) return false;
+  const getBookingForRoomOnDate = (room, dateString) => {
+    return bookings.find((b) => {
+      if (b.room_id !== room.id) return false;
 
-    const checkIn = new Date(b.check_in);
-    const checkOut = b.check_out ? new Date(b.check_out) : null;
-    const current = new Date(dateString);
+      const checkIn = new Date(b.check_in);
+      const checkOut = b.check_out ? new Date(b.check_out) : null;
+      const current = new Date(dateString);
 
-    // Normalize all dates to start of day (00:00:00) to ignore time/timezone issues
-    checkIn.setHours(0, 0, 0, 0);
-    if (checkOut) checkOut.setHours(0, 0, 0, 0);
-    current.setHours(0, 0, 0, 0);
+      checkIn.setHours(0, 0, 0, 0);
+      if (checkOut) checkOut.setHours(0, 0, 0, 0);
+      current.setHours(0, 0, 0, 0);
 
-    if (!checkOut) {
-      return current >= checkIn;
-    }
+      if (!checkOut) {
+        return current >= checkIn;
+      }
 
-    return current >= checkIn && current < checkOut;
-  });
-};
+      return current >= checkIn && current <= checkOut;
+    });
+  };
 
   /* ================= EVENT HANDLERS ================= */
   const handlePrevious = () => {
@@ -187,7 +180,6 @@ const getBookingForRoomOnDate = (room, dateString) => {
     const booking = getBookingForRoomOnDate(room, dateStr);
 
     if (booking) {
-      // Existing booking → show booking details
       setSelectedRoomEvent({
         room,
         booking,
@@ -195,7 +187,6 @@ const getBookingForRoomOnDate = (room, dateString) => {
         status: "Booked",
       });
     } else {
-      // Available → open BookingForm
       setSelectedRoomForBooking(room);
       setBookingDate(dateStr);
       setShowBookingModal(true);
@@ -210,21 +201,10 @@ const getBookingForRoomOnDate = (room, dateString) => {
     navigate("/booking");
   };
 
-
   const getHeaderTitle = () => {
     const monthNames = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December",
     ];
 
     if (viewMode === "month") {
@@ -239,7 +219,6 @@ const getBookingForRoomOnDate = (room, dateString) => {
     }
   };
 
-  // Helper for today's date display
   const getTodayDisplayDate = () => {
     return new Date().toLocaleDateString("en-IN", {
       day: "2-digit",
@@ -263,7 +242,6 @@ const getBookingForRoomOnDate = (room, dateString) => {
     );
   }
 
-  // Calculate stats
   const totalRooms = rooms.length;
   const bookedToday = rooms.filter((room) =>
     getBookingForRoomOnDate(room, formatDate(new Date())),
@@ -276,7 +254,6 @@ const getBookingForRoomOnDate = (room, dateString) => {
    <Container>
   <div className="space-y-6">
 
-    {/* Page Header */}
     <div className="text-center px-4 pt-2">
       <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-2">
         <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
@@ -292,7 +269,6 @@ const getBookingForRoomOnDate = (room, dateString) => {
       </div>
     </div>
 
-    {/* Stats Dashboard */}
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 px-4">
       <StatsCard icon={Home}        label="Total Rooms"     value={totalRooms}          color="blue"   emoji="🏨" />
       <StatsCard icon={CheckCircle} label="Available Today" value={availableToday}       color="green"  emoji="✅" />
@@ -302,10 +278,8 @@ const getBookingForRoomOnDate = (room, dateString) => {
       />
     </div>
 
-    {/* Controls Row */}
     <div className="flex flex-col lg:flex-row lg:items-center gap-4 px-4">
 
-      {/* View Toggle */}
       <div className="flex gap-1.5 bg-gray-100/50 rounded-2xl p-1.5 w-full lg:w-auto">
         {[
           { mode: "month", icon: Calendar, label: "Month" },
@@ -326,7 +300,6 @@ const getBookingForRoomOnDate = (room, dateString) => {
         ))}
       </div>
 
-      {/* Navigation */}
       <div className="flex items-center gap-3 bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100">
         <button
           onClick={handlePrevious}
@@ -350,7 +323,6 @@ const getBookingForRoomOnDate = (room, dateString) => {
         </button>
       </div>
 
-      {/* Title + Year selector */}
       <div className="flex items-center gap-3">
         <h3 className="text-lg sm:text-xl font-bold text-gray-800">
           {getHeaderTitle()}
@@ -368,7 +340,6 @@ const getBookingForRoomOnDate = (room, dateString) => {
       </div>
     </div>
 
-    {/* Calendar Views */}
     <div className="px-4 pb-12">
       <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-x-auto scrollbar-hide">
         <div className="min-w-[1000px] lg:min-w-full">
@@ -399,7 +370,6 @@ const getBookingForRoomOnDate = (room, dateString) => {
 
   </div>
 
-  {/* Modals */}
   {selectedRoomEvent && (
     <RoomDayModal
       data={selectedRoomEvent}
@@ -412,7 +382,6 @@ const getBookingForRoomOnDate = (room, dateString) => {
   {showBookingModal && (
     <div className="fixed inset-0 bg-black/40 flex items-end justify-center sm:items-center z-50 p-0 sm:p-4">
       <div className="bg-white w-full sm:max-w-3xl max-h-[92dvh] sm:max-h-[90vh] rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden">
-        {/* Modal header */}
         <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 shrink-0">
           <div>
             <h2 className="text-lg font-bold text-[#0A1B4D]">Create Booking</h2>
@@ -430,7 +399,6 @@ const getBookingForRoomOnDate = (room, dateString) => {
             ×
           </button>
         </div>
-        {/* Scrollable body */}
         <div className="overflow-y-auto flex-1 px-5 py-4">
           <BookingForm
             selectedDate={bookingDate}
