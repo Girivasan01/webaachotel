@@ -6,10 +6,11 @@ import { useAuth } from "../../hooks/useAuth";
 const WARNING_SHOWN_KEY = "subscription_warning_shown_date";
 
 export default function SubscriptionWarning() {
-  const { setUser } = useAuth();
+  const { setUser, user, setHasBanner } = useAuth();
   const [status, setStatus] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
   const [showBanner, setShowBanner] = useState(true);
+
 
   useEffect(() => {
     const checkSubscription = async () => {
@@ -49,6 +50,11 @@ export default function SubscriptionWarning() {
 
     checkSubscription();
   }, []);
+
+
+  useEffect(() => {
+    setHasBanner(showBanner && !!status && status.type !== "locked");
+  }, [showBanner, status]);
 
   const handleCloseBanner = () => {
     setShowBanner(false);
@@ -182,10 +188,10 @@ export default function SubscriptionWarning() {
       {/* Banner below header */}
       {showBanner && (
         <div
-          className={`flex items-center justify-between gap-3 px-4 py-3 text-sm font-medium
-          mt-24 md:mt-24
-          ml-0 w-full
-          md:ml-64 md:w-[calc(100%-16rem)]
+          className={`fixed z-40 top-16 md:top-20 left-0 right-0 md:left-64 flex items-center justify-between gap-3 px-4 py-3 text-sm font-medium
+          
+          
+          
           ${isCritical ? "bg-red-600 text-white" : "bg-yellow-400 text-yellow-900"}`}
         >
           <div className="flex items-center gap-3 flex-1">

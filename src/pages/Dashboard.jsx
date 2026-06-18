@@ -11,6 +11,7 @@ import {
   TrendingUp,
   Users,
   Calendar,
+  HardDrive,
 } from "lucide-react";
 import { API_BASE_URL } from "../config";
 import {
@@ -29,10 +30,15 @@ import {
   Legend,
 } from "recharts";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
+import auth from "../auth/axiosInstance";
 
 export default function Dashboard() {
   const NAVY = "#0A1A2F";
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAdmin = user?.role?.toLowerCase() === "admin";
+  const [storage, setStorage] = useState(null);
 
   const [stats, setStats] = useState({
     totalRooms: 0,
@@ -60,7 +66,10 @@ export default function Dashboard() {
         if (data.kitchenStatus) {
           kitchenStatusArray = Array.isArray(data.kitchenStatus)
             ? data.kitchenStatus
-            : Object.entries(data.kitchenStatus).map(([status, count]) => ({ status, count }));
+            : Object.entries(data.kitchenStatus).map(([status, count]) => ({
+                status,
+                count,
+              }));
         }
         setStats((prev) => ({
           ...prev,
@@ -72,24 +81,39 @@ export default function Dashboard() {
 
     fetch(`${API_BASE_URL}/api/dashboard/bookings-trend?days=30`)
       .then((res) => res.json())
-      .then((data) => setStats((prev) => ({ ...prev, bookingTrend: data || [] })))
+      .then((data) =>
+        setStats((prev) => ({ ...prev, bookingTrend: data || [] })),
+      )
       .catch(console.error);
 
     fetch(`${API_BASE_URL}/api/dashboard/revenue-by-category`)
       .then((res) => res.json())
-      .then((data) => setStats((prev) => ({ ...prev, revenueByCategory: data || [] })))
+      .then((data) =>
+        setStats((prev) => ({ ...prev, revenueByCategory: data || [] })),
+      )
       .catch(console.error);
 
     fetch(`${API_BASE_URL}/api/dashboard/top-menu-items`)
       .then((res) => res.json())
-      .then((data) => setStats((prev) => ({ ...prev, topMenuItems: data || [] })))
+      .then((data) =>
+        setStats((prev) => ({ ...prev, topMenuItems: data || [] })),
+      )
       .catch(console.error);
 
     fetch(`${API_BASE_URL}/api/dashboard/kitchen-status`)
       .then((res) => res.json())
-      .then((data) => setStats((prev) => ({ ...prev, kitchenStatus: data || [] })))
+      .then((data) =>
+        setStats((prev) => ({ ...prev, kitchenStatus: data || [] })),
+      )
       .catch(console.error);
-  }, []);
+
+    if (isAdmin) {
+      auth
+        .get("/auth/storage-usage")
+        .then((res) => setStorage(res.data))
+        .catch(console.error);
+    }
+  }, [isAdmin]);
 
   const topCards = [
     {
@@ -118,12 +142,96 @@ export default function Dashboard() {
   ];
 
   const quickActions = [
-    { label: "New Booking", icon: PlusCircle, link: "/booking", gradient: "from-emerald-500 to-green-600" },
-    { label: "Create Bill", icon: Receipt, link: "/billing", gradient: "from-blue-500 to-indigo-600" },
+    {
+      label: "New Booking",
+      icon: PlusCircle,
+      link: "/booking",
+      gradient: "from-emerald-500 to-green-600",
+    },
+    {
+      label: "Create Bill",
+      icon: Receipt,
+      link: "/billing",
+      gradient: "from-blue-500 to-indigo-600",
+    },
   ];
 
   return (
     <Container title="Dashboard" subtitle="Hotel Overview">
+      {/* Storage Usage — Admin Only */}
+      {isAdmin &&
+        storage &&
+        storage.limitGb > 0 &&
+        (() => {
+          const pct = Math.min(100, (storage.usedGb / storage.limitGb) * 100);
+          const isWarning = pct >= 70 && pct < 90;
+          const isCritical = pct >= 90;
+          const barColor = isCritical
+            ? "from-red-500 to-rose-600"
+            : isWarning
+              ? "from-amber-400 to-orange-500"
+              : "from-emerald-400 to-teal-500";
+          const badgeColor = isCritical
+            ? "bg-red-100 text-red-700"
+            : isWarning
+              ? "bg-amber-100 text-amber-700"
+              : "bg-emerald-100 text-emerald-700";
+          const statusText = isCritical
+            ? "Critical"
+            : isWarning
+              ? "Warning"
+              : "Healthy";
+          return (
+            <div className="mt-6 relative overflow-hidden rounded-2xl bg-white shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-300">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-400 via-blue-500 to-purple-500"></div>
+              <div className="p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+                {/* Icon + Label */}
+                <div className="flex items-center gap-3 min-w-max">
+                  <div className="p-2.5 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 shadow-md">
+                    <HardDrive className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Storage Usage
+                    </p>
+                    <p className="text-sm font-bold text-gray-800">
+                      {storage.usedGb.toFixed(2)}{" "}
+                      <span className="text-gray-400 font-medium">
+                        / {storage.limitGb} GB
+                      </span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Bar */}
+                <div className="flex-1 flex flex-col gap-1.5">
+                  <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden border border-black/5">
+                    <div
+                      className={`h-full rounded-full bg-gradient-to-r ${barColor} transition-all duration-700`}
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-gray-400">
+                      {pct.toFixed(1)}% used
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      {(storage.limitGb - storage.usedGb).toFixed(2)} GB free
+                    </span>
+                  </div>
+                </div>
+
+                {/* Badge */}
+                <span
+                  className={`text-xs font-bold px-3 py-1.5 rounded-full min-w-max ${badgeColor}`}
+                >
+                  {statusText}
+                </span>
+              </div>
+            </div>
+          );
+        })()}
+
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mt-6">
         {topCards.map((card, idx) => (
@@ -132,7 +240,9 @@ export default function Dashboard() {
             className="group relative overflow-hidden rounded-2xl bg-white shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-200"
           >
             {/* Background gradient decoration */}
-            <div className={`absolute -right-8 -top-8 w-32 h-32 bg-gradient-to-br ${card.bgGradient} opacity-20 rounded-full group-hover:scale-150 transition-transform duration-700`}></div>
+            <div
+              className={`absolute -right-8 -top-8 w-32 h-32 bg-gradient-to-br ${card.bgGradient} opacity-20 rounded-full group-hover:scale-150 transition-transform duration-700`}
+            ></div>
 
             <div className="relative z-10 p-6">
               {/* Header */}
@@ -140,7 +250,9 @@ export default function Dashboard() {
                 <span className="text-sm font-medium text-gray-600">
                   {card.label}
                 </span>
-                <div className={`p-3 rounded-xl bg-gradient-to-br ${card.gradient} shadow-lg`}>
+                <div
+                  className={`p-3 rounded-xl bg-gradient-to-br ${card.gradient} shadow-lg`}
+                >
                   <card.icon className="w-6 h-6 text-white" />
                 </div>
               </div>
@@ -153,7 +265,9 @@ export default function Dashboard() {
               </div>
 
               {/* Animated bottom border */}
-              <div className={`absolute bottom-0 left-0 h-1 w-0 group-hover:w-full bg-gradient-to-r ${card.gradient} transition-all duration-500`}></div>
+              <div
+                className={`absolute bottom-0 left-0 h-1 w-0 group-hover:w-full bg-gradient-to-r ${card.gradient} transition-all duration-500`}
+              ></div>
             </div>
           </div>
         ))}
@@ -210,8 +324,12 @@ export default function Dashboard() {
               ) : (
                 <div className="py-12 text-center">
                   <div className="text-5xl mb-3">🏨</div>
-                  <p className="text-gray-400 font-medium">No recent check-ins</p>
-                  <p className="text-xs text-gray-300 mt-1">Check-ins will appear here</p>
+                  <p className="text-gray-400 font-medium">
+                    No recent check-ins
+                  </p>
+                  <p className="text-xs text-gray-300 mt-1">
+                    Check-ins will appear here
+                  </p>
                 </div>
               )}
             </div>
@@ -243,7 +361,9 @@ export default function Dashboard() {
                   className="group relative overflow-hidden rounded-2xl  p-6 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105"
                 >
                   {/* Gradient background */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${action.gradient}`}></div>
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-br ${action.gradient}`}
+                  ></div>
 
                   {/* Hover shine effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
@@ -259,7 +379,9 @@ export default function Dashboard() {
                   </div>
 
                   {/* Glow effect on hover */}
-                  <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 blur-xl bg-gradient-to-br ${action.gradient} transition-opacity duration-300 -z-10`}></div>
+                  <div
+                    className={`absolute inset-0 opacity-0 group-hover:opacity-100 blur-xl bg-gradient-to-br ${action.gradient} transition-opacity duration-300 -z-10`}
+                  ></div>
                 </button>
               ))}
             </div>

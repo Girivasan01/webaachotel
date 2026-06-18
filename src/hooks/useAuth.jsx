@@ -7,6 +7,7 @@ export const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [hasBanner, setHasBanner] = useState(false);
 
   // 🔄 Restore session on refresh
   useEffect(() => {
@@ -25,7 +26,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading }}>
+    <AuthContext.Provider value={{ user, setUser, loading, hasBanner, setHasBanner }}>
       {!loading && children}
     </AuthContext.Provider>
   );
