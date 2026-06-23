@@ -4,6 +4,8 @@ import { API_BASE_URL } from "../../config";
 import { toast } from "react-toastify";
 import { PlusCircle, ChevronDown, Search, X } from "lucide-react";
 import CustomerForm from "../customers/CustomerForm";
+import { saveLocalCustomer } from "../../utils/customerStorage";
+import CustomerAvatar from "../common/CustomerAvatar";
 
 // DATE HELPERS (pure string; no Date parsing from DB/user strings)
 
@@ -177,8 +179,9 @@ function CustomerDropdown({
           } bg-white`}
         >
           {selected ? (
-            <span className="flex-1 truncate text-gray-800">
-              {formatCustomerLabel(selected)}
+            <span className="flex flex-1 items-center gap-2 truncate text-gray-800">
+              <CustomerAvatar photo={selected.photo} name={selected.name} size="xs" />
+              <span className="truncate">{formatCustomerLabel(selected)}</span>
             </span>
           ) : (
             <span className="flex-1 truncate text-gray-400">
@@ -239,14 +242,26 @@ function CustomerDropdown({
                     key={customer.id}
                     type="button"
                     onClick={() => handleSelect(customer)}
-                    className={`flex w-full items-center justify-between px-3 py-2.5 text-left text-sm transition-colors ${
+                    className={`flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors ${
                       Number(customer.id) === Number(value)
                         ? "bg-[#0A1B4D] text-white"
                         : "text-gray-700 hover:bg-blue-50"
                     }`}
                   >
-                    <span className="font-medium truncate">
-                      {customer.name || "Unknown Customer"}
+                    <span className="flex min-w-0 flex-1 items-center gap-2">
+                      <CustomerAvatar
+                        photo={customer.photo}
+                        name={customer.name}
+                        size="xs"
+                        className={
+                          Number(customer.id) === Number(value)
+                            ? "ring-1 ring-white/30"
+                            : ""
+                        }
+                      />
+                      <span className="truncate font-medium">
+                        {customer.name || "Unknown Customer"}
+                      </span>
                     </span>
                     <span
                       className={`ml-4 shrink-0 text-xs ${
@@ -536,21 +551,22 @@ export default function BookingForm({
 
   const handleSaveCustomer = async (formData) => {
     try {
-      const config = { headers: { "Content-Type": "multipart/form-data" } };
       const res = await axios.post(
         `${API_BASE_URL}/api/customers`,
         formData,
-        config,
       );
 
       toast.success("Customer created successfully!");
-      const newCustomer = res.data.customer || res.data;
-      setCustomers((prev) => [...prev, newCustomer]);
-      setForm((prev) => ({ ...prev, customer_id: newCustomer.id }));
+      const newCustomer = res.data;
+      if (newCustomer?.id) {
+        saveLocalCustomer(newCustomer);
+        setCustomers((prev) => [...prev, newCustomer]);
+        setForm((prev) => ({ ...prev, customer_id: newCustomer.id }));
+      }
       setShowCustomerModal(false);
     } catch (err) {
       console.error(err);
-      toast.error("Failed to save customer");
+      toast.error(err.response?.data?.message || err.response?.data?.error || "Failed to save customer");
     }
   };
 
@@ -854,19 +870,21 @@ export default function BookingForm({
 
       {/* Add Customer Modal */}
       {showCustomerModal && (
-        <div className="fixed inset-0 z-[60] flex items-end justify-center overflow-y-auto bg-black/40 p-3 sm:items-center sm:p-4">
-          <div className="relative w-full max-w-xl overflow-y-auto rounded-2xl bg-white p-4 shadow-xl sm:max-h-[90vh] sm:p-6">
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 sm:items-center sm:p-4">
+          <div className="relative flex max-h-[92dvh] w-full max-w-xl flex-col rounded-t-2xl bg-white shadow-xl sm:max-h-[90vh] sm:rounded-2xl">
             <button
               onClick={() => setShowCustomerModal(false)}
-              className="absolute right-3 top-3 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+              className="absolute right-3 top-3 z-20 inline-flex h-10 w-10 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
               aria-label="Close customer form"
             >
               ×
             </button>
-            <CustomerForm
-              onSave={handleSaveCustomer}
-              onCancel={() => setShowCustomerModal(false)}
-            />
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-2 pt-10 sm:px-6 sm:pb-4 sm:pt-6">
+              <CustomerForm
+                onSave={handleSaveCustomer}
+                onCancel={() => setShowCustomerModal(false)}
+              />
+            </div>
           </div>
         </div>
       )}

@@ -48,8 +48,9 @@ const AppLayout = () => {
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       <div className="flex-1 flex flex-col min-w-0">
         <Topbar onMenuClick={() => setSidebarOpen(true)} />
-        <SubscriptionWarning />
-        <main className="flex-1">
+        <div className="flex-1 flex flex-col min-w-0 pt-[4.5rem] md:pt-20 md:ml-64">
+          <SubscriptionWarning />
+          <main className="flex-1">
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/rooms" element={<Rooms />} />
@@ -80,7 +81,8 @@ const AppLayout = () => {
               }
             />
           </Routes>
-        </main>
+          </main>
+        </div>
       </div>
     </div>
   );

@@ -8,6 +8,7 @@ import Pagination from "./Pagination";
 import SearchInput from "../common/SearchInput";
 import { LoadingSpinner } from "../common/LoadingSpinner";
 import { Download, MoreVertical, Eye, Trash2 } from "lucide-react";
+import CustomerAvatar from "../common/CustomerAvatar";
 
 const PAGE_SIZE = 8;
 
@@ -31,7 +32,6 @@ function BillRow({ bill, onOpen, onDeleteComplete }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
 
-  const customerInitial = (bill.customer_name || "?")[0].toUpperCase();
   const formattedDate = bill.created_at
     ? new Date(bill.created_at).toLocaleDateString("en-IN", {
         day: "2-digit",
@@ -52,9 +52,11 @@ function BillRow({ bill, onOpen, onDeleteComplete }) {
       </td>
       <td className="px-3 py-3 whitespace-nowrap">
         <div className="flex items-center gap-2">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-600 text-xs font-bold text-white uppercase">
-            {customerInitial}
-          </span>
+          <CustomerAvatar
+            photo={bill.customer_photo}
+            name={bill.customer_name}
+            size="md"
+          />
           <span className="text-sm font-medium text-gray-800">
             {bill.customer_name || "—"}
           </span>

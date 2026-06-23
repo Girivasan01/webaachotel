@@ -6,8 +6,14 @@ import { toast } from "react-toastify";
 import CustomerForm from "./CustomerForm";
 import CustomerDetails from "./CustomerDetails";
 import SearchInput from "../common/SearchInput";
+import CustomerAvatar from "../common/CustomerAvatar";
 import { API_BASE_URL } from "../../config";
 import { useAuth } from "../../hooks/useAuth";
+import {
+  saveLocalCustomer,
+  syncLocalCustomers,
+  removeLocalCustomer,
+} from "../../utils/customerStorage";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -129,15 +135,18 @@ const SkeletonRows = () =>
 
 /* ================= MODAL ================= */
 const Modal = ({ children, onClose }) => (
-  <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl p-6 relative">
+  <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm sm:items-center sm:p-4">
+    <div className="relative flex max-h-[92dvh] w-full max-w-xl flex-col rounded-t-2xl bg-white shadow-2xl sm:max-h-[90vh] sm:rounded-2xl">
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors text-sm"
+        className="absolute right-3 top-3 z-20 flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+        aria-label="Close"
       >
         ✕
       </button>
-      {children}
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-2 pt-10 sm:px-6 sm:pb-4 sm:pt-6">
+        {children}
+      </div>
     </div>
   </div>
 );
@@ -158,7 +167,9 @@ export default function CustomerList() {
     setLoading(true);
     try {
       const res = await axios.get(`${API_BASE_URL}/api/customers`);
-      setCustomers(res.data || []);
+      const data = res.data || [];
+      setCustomers(data);
+      syncLocalCustomers(data);
       setPage(1);
     } catch (err) {
       console.error(err);
@@ -193,18 +204,26 @@ export default function CustomerList() {
   /* ── Save ── */
   const saveCustomer = async (formData) => {
     try {
-      const config = { headers: { "Content-Type": "multipart/form-data" } };
+      let saved;
       if (editCustomer?.id) {
-        await axios.put(`${API_BASE_URL}/api/customers/${editCustomer.id}`, formData, config);
+        const res = await axios.put(
+          `${API_BASE_URL}/api/customers/${editCustomer.id}`,
+          formData,
+        );
+        saved = res.data;
+        toast.success("Customer updated");
       } else {
-        await axios.post(`${API_BASE_URL}/api/customers`, formData, config);
+        const res = await axios.post(`${API_BASE_URL}/api/customers`, formData);
+        saved = res.data;
+        toast.success("Customer added");
       }
+      if (saved?.id) saveLocalCustomer(saved);
       setShowFormModal(false);
       setEditCustomer(null);
       fetchCustomers();
     } catch (err) {
       console.error(err);
-      toast.error("Failed to save customer");
+      toast.error(err.response?.data?.message || err.response?.data?.error || "Failed to save customer");
     }
   };
 
@@ -213,6 +232,7 @@ export default function CustomerList() {
     if (!window.confirm("Delete this customer?")) return;
     try {
       await axios.delete(`${API_BASE_URL}/api/customers/${id}`);
+      removeLocalCustomer(id);
       setCustomers((prev) => prev.filter((c) => c.id !== id));
       toast.success("Customer deleted");
     } catch (err) {
@@ -303,9 +323,7 @@ export default function CustomerList() {
                       {/* Customer */}
                       <td className="px-3 py-3">
                         <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm">
-                            {c.name?.charAt(0).toUpperCase()}
-                          </div>
+                          <CustomerAvatar photo={c.photo} name={c.name} size="sm" />
                           <span className="font-semibold text-gray-800 capitalize text-[13px] truncate max-w-[120px]">
                             {c.name}
                           </span>

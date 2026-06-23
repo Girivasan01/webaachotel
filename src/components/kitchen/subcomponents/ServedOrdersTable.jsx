@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, CheckCircle, FileText, Trash2 } from "lucide-react";
+import CustomerAvatar from "../../common/CustomerAvatar";
 
 /* ================= FIXED-POSITION ACTIONS MENU ================= */
 const ActionsMenu = ({ group, generatingBill, generateBill, handleDelete, isDownloaded, user }) => {
@@ -193,9 +194,11 @@ export default function ServedOrdersTable({
                         {!isRestaurant && (
                           <td className="px-3 py-3 hidden md:table-cell">
                             <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
-                                {group.orders[0]?.customer_name?.charAt(0).toUpperCase()}
-                              </div>
+                              <CustomerAvatar
+                                photo={group.orders[0]?.customer_photo}
+                                name={group.orders[0]?.customer_name}
+                                size="xs"
+                              />
                               <div className="flex flex-col">
                                 <span className="text-[12px] font-semibold text-gray-700 capitalize">{group.orders[0]?.customer_name}</span>
                                 <span className="text-[9px] text-gray-400 font-mono">#{group.orders[0]?.booking_id}</span>

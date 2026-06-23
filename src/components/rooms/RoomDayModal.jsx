@@ -4,10 +4,10 @@ import {
   LogIn,
   LogOut,
   Hash,
-  User,
   Edit2,
   ExternalLink,
 } from "lucide-react";
+import CustomerAvatar from "../common/CustomerAvatar";
 
 const formatDateTime = (str) => {
   if (!str) return "—";
@@ -78,9 +78,11 @@ export default function RoomDayModal({ data, onClose, onEdit, onViewBookings }) 
             <>
               {booking.customer_name && (
                 <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-blue-50 text-blue-600">
-                    <User className="w-4 h-4" />
-                  </div>
+                  <CustomerAvatar
+                    photo={booking.customer_photo}
+                    name={booking.customer_name}
+                    size="md"
+                  />
                   <div>
                     <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                       Guest

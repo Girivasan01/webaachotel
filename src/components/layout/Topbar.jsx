@@ -50,7 +50,7 @@ export default function Topbar({ onMenuClick }) {
   return (
     <div
       className={`
-        fixed top-0 z-40
+        fixed top-0 z-50
         ${isKitchen ? "w-full ml-0" : "w-full md:ml-64 md:w-[calc(100%-16rem)]"}
         bg-white/90 backdrop-blur-xl
         border-b border-gray-200/50 shadow-lg
@@ -112,7 +112,7 @@ export default function Topbar({ onMenuClick }) {
 
         {/* DROPDOWN */}
         {open && (
-          <div className="absolute right-0 mt-3 w-64 bg-gradient-to-br from-[#0A1A2F] to-[#13294B] text-white rounded-2xl shadow-2xl overflow-hidden border border-white/10 animate-slideDown">
+          <div className="absolute right-0 z-[60] mt-3 w-64 animate-slideDown overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-[#0A1A2F] to-[#13294B] text-white shadow-2xl">
             {/* User info header */}
             <div className="px-5 py-4 bg-white/5 backdrop-blur-xl border-b border-white/10">
               <div className="flex items-center gap-3">

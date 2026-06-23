@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
+import CustomerAvatar from "../../common/CustomerAvatar";
 
 /* ================= STATUS SELECT ================= */
 const StatusSelect = ({ value, onChange }) => {
@@ -109,9 +110,11 @@ export default function LiveOrdersTable({
                     {!isRestaurant && (
                       <td className="px-3 py-3 hidden md:table-cell">
                         <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
-                            {o.customer_name?.charAt(0).toUpperCase()}
-                          </div>
+                          <CustomerAvatar
+                            photo={o.customer_photo}
+                            name={o.customer_name}
+                            size="xs"
+                          />
                           <div className="flex flex-col">
                             <span className="text-[12px] font-semibold text-gray-700 capitalize">{o.customer_name}</span>
                             <span className="text-[9px] text-gray-400 font-mono">#{o.booking_id}</span>

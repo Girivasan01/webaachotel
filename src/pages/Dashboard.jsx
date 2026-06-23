@@ -32,13 +32,20 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import auth from "../auth/axiosInstance";
+import CustomerAvatar from "../components/common/CustomerAvatar";
 
 export default function Dashboard() {
   const NAVY = "#0A1A2F";
   const navigate = useNavigate();
   const { user } = useAuth();
   const isAdmin = user?.role?.toLowerCase() === "admin";
-  const [storage, setStorage] = useState(null);
+  const [storage, setStorage] = useState({
+    usedBytes: 0,
+    usedGb: 0,
+    limitGb: 0,
+    remainingGb: 0,
+    source: "none",
+  });
 
   const [stats, setStats] = useState({
     totalRooms: 0,
@@ -110,8 +117,25 @@ export default function Dashboard() {
     if (isAdmin) {
       auth
         .get("/auth/storage-usage")
-        .then((res) => setStorage(res.data))
-        .catch(console.error);
+        .then((res) =>
+          setStorage({
+            usedBytes: 0,
+            usedGb: 0,
+            limitGb: 0,
+            remainingGb: 0,
+            source: "none",
+            ...res.data,
+          }),
+        )
+        .catch(() => {
+          setStorage({
+            usedBytes: 0,
+            usedGb: 0,
+            limitGb: 0,
+            remainingGb: 0,
+            source: "none",
+          });
+        });
     }
   }, [isAdmin]);
 
@@ -158,12 +182,13 @@ export default function Dashboard() {
 
   return (
     <Container title="Dashboard" subtitle="Hotel Overview">
-      {/* Storage Usage — Admin Only */}
+      {/* Storage Usage — Admin Only (always visible) */}
       {isAdmin &&
-        storage &&
-        storage.limitGb > 0 &&
         (() => {
-          const pct = Math.min(100, (storage.usedGb / storage.limitGb) * 100);
+          const limitGb = Number(storage?.limitGb || 0);
+          const usedGb = Number(storage?.usedGb || 0);
+          const pct =
+            limitGb > 0 ? Math.min(100, (usedGb / limitGb) * 100) : 0;
           const isWarning = pct >= 70 && pct < 90;
           const isCritical = pct >= 90;
           const barColor = isCritical
@@ -175,17 +200,20 @@ export default function Dashboard() {
             ? "bg-red-100 text-red-700"
             : isWarning
               ? "bg-amber-100 text-amber-700"
-              : "bg-emerald-100 text-emerald-700";
+              : limitGb > 0
+                ? "bg-emerald-100 text-emerald-700"
+                : "bg-gray-100 text-gray-600";
           const statusText = isCritical
             ? "Critical"
             : isWarning
               ? "Warning"
-              : "Healthy";
+              : limitGb > 0
+                ? "Healthy"
+                : "Awaiting sync";
           return (
             <div className="mt-6 relative overflow-hidden rounded-2xl bg-white shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-300">
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-400 via-blue-500 to-purple-500"></div>
               <div className="p-5 flex flex-col sm:flex-row sm:items-center gap-4">
-                {/* Icon + Label */}
                 <div className="flex items-center gap-3 min-w-max">
                   <div className="p-2.5 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 shadow-md">
                     <HardDrive className="w-5 h-5 text-white" />
@@ -195,15 +223,19 @@ export default function Dashboard() {
                       Storage Usage
                     </p>
                     <p className="text-sm font-bold text-gray-800">
-                      {storage.usedGb.toFixed(2)}{" "}
+                      {usedGb.toFixed(2)}{" "}
                       <span className="text-gray-400 font-medium">
-                        / {storage.limitGb} GB
+                        / {limitGb > 0 ? `${limitGb} GB` : "— GB"}
                       </span>
                     </p>
+                    {storage?.source === "none" && (
+                      <p className="text-[11px] text-gray-400 mt-0.5">
+                        Connect Vault Sync and run Sync to load limits
+                      </p>
+                    )}
                   </div>
                 </div>
 
-                {/* Bar */}
                 <div className="flex-1 flex flex-col gap-1.5">
                   <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden border border-black/5">
                     <div
@@ -213,15 +245,16 @@ export default function Dashboard() {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-gray-400">
-                      {pct.toFixed(1)}% used
+                      {limitGb > 0 ? `${pct.toFixed(1)}% used` : "No limit configured yet"}
                     </span>
                     <span className="text-xs text-gray-400">
-                      {(storage.limitGb - storage.usedGb).toFixed(2)} GB free
+                      {limitGb > 0
+                        ? `${Math.max(0, limitGb - usedGb).toFixed(2)} GB free`
+                        : "—"}
                     </span>
                   </div>
                 </div>
 
-                {/* Badge */}
                 <span
                   className={`text-xs font-bold px-3 py-1.5 rounded-full min-w-max ${badgeColor}`}
                 >
@@ -303,9 +336,7 @@ export default function Dashboard() {
                     className="group flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-gray-50 to-white hover:from-blue-50 hover:to-purple-50 border border-gray-100 transition-all duration-300 hover:shadow-md"
                   >
                     {/* Avatar */}
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold shadow-md">
-                      {item.name?.charAt(0).toUpperCase()}
-                    </div>
+                    <CustomerAvatar photo={item.photo} name={item.name} size="lg" />
 
                     {/* Info */}
                     <div className="flex-1">

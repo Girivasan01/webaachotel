@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { ChevronLeft, ChevronRight, LogOut, Trash2 } from "lucide-react";
+import CustomerAvatar from "../common/CustomerAvatar";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -280,9 +281,11 @@ export default function BookingTable({
                         {/* Customer */}
                         <td className="px-3 py-3">
                           <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm">
-                              {booking.customer_name?.charAt(0).toUpperCase()}
-                            </div>
+                            <CustomerAvatar
+                              photo={booking.customer_photo}
+                              name={booking.customer_name}
+                              size="sm"
+                            />
                             <span className="font-semibold text-gray-800 capitalize truncate max-w-[90px] text-[12px]">
                               {booking.customer_name}
                             </span>

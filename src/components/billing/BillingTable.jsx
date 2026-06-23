@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import CustomerAvatar from "../common/CustomerAvatar";
 
 const formatBillDate = (dateStr) => {
   if (!dateStr) return "-";
@@ -228,9 +229,11 @@ const BillingTable = ({ billings = [], onOpen, onDelete }) => {
                     {/* Customer */}
                     <td className="px-3 py-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm">
-                          {b.customer_name?.charAt(0).toUpperCase()}
-                        </div>
+                        <CustomerAvatar
+                          photo={b.customer_photo}
+                          name={b.customer_name}
+                          size="sm"
+                        />
                         <span className="font-semibold text-gray-800 capitalize truncate max-w-[90px] text-[12px]">
                           {b.customer_name}
                         </span>
