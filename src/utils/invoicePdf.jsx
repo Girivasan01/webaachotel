@@ -26,7 +26,7 @@ const FallbackInvoiceDocument = ({ selectedBill }) => {
         size="A4"
         style={{ padding: 24, fontFamily: "Helvetica", fontSize: 10 }}
       >
-        <Text style={{ fontSize: 16, marginBottom: 10 }}>HOTEL FRIDAY INN</Text>
+        <Text style={{ fontSize: 16, marginBottom: 10 }}>Webaac Hotel CRM</Text>
         <Text style={{ marginBottom: 6 }}>Invoice #{billId}</Text>
         <Text style={{ marginBottom: 6 }}>
           Guest: {selectedBill?.customer_name || "Guest"}

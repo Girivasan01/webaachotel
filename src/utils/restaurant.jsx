@@ -172,10 +172,10 @@ const RestaurantBillDocument = ({
     <Page size={[THERMAL_WIDTH, pageHeight]} style={styles.page}>
       <View style={styles.ticket}>
         <View style={styles.headerRow}>
-          <Image style={styles.logo} src="/FridayInnLogo.png" />
+          <Image style={styles.logo} src="/WebaacLogo.png" />
           <View style={styles.hotelMeta}>
             <Text style={styles.title}>
-              {restaurantName || "HOTEL FRIDAY INN"}
+              {restaurantName || "Webaac Hotel CRM"}
             </Text>
             <Text style={styles.address}>
               D.NO 307 ASAMBUR TO MANJAKUTTAI ROAD,{"\n"}
@@ -241,7 +241,7 @@ const RestaurantBillDocument = ({
           <Text style={styles.totalValue}>{currency(totalAmount)}</Text>
         </View>
 
-        <Text style={styles.footer}>Thank you for dining at Hotel Friday Inn.</Text>
+        <Text style={styles.footer}>Thank you for dining at Webaac Hotel CRM.</Text>
         <Text style={styles.footer}>Please visit again.</Text>
       </View>
     </Page>
@@ -263,7 +263,7 @@ const triggerBlobDownload = (blob, filename) => {
 };
 
 export const generateRestaurantBillPDF = async ({
-  restaurantName = "HOTEL FRIDAY INN",
+  restaurantName = "Webaac Hotel CRM",
   tableNo = "-",
   billNo = "-",
   orders = [],

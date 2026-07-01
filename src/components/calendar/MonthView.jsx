@@ -108,7 +108,6 @@ export default function MonthView({
                     const isBooked = !!booking;
                     const isCheckedOut =
                       isPast && !isToday && isBooked && booking.status === "Checked-out";
-                      console.log(booking);
 
                     return (
                       <button

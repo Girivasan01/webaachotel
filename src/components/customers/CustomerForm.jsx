@@ -1,8 +1,11 @@
 import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { toast } from "react-toastify";
-import { Upload, X, FileText, Camera, RefreshCw, Image, Plus, Trash2, AlertTriangle } from "lucide-react";
+import { Upload, X, FileText, Camera, RefreshCw, Image, Trash2, AlertTriangle } from "lucide-react";
 import { API_BASE_URL } from "../../config";
 import axiosInstance from "../../auth/axiosInstance";
+
+const MAX_FILE_SIZE = 1 * 1024 * 1024;
+const MAX_FILE_SIZE_LABEL = "1MB";
 
 const isValidPhone = (phone) => /^[6-9]\d{9}$/.test(String(phone || ""));
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -151,8 +154,8 @@ function PhotoCapture({ photo, onPhotoChange }) {
       toast.error("Please select an image file");
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Photo must be under 5MB");
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error(`Photo must be under ${MAX_FILE_SIZE_LABEL}`);
       return;
     }
     onPhotoChange(file);
@@ -234,7 +237,7 @@ function PhotoCapture({ photo, onPhotoChange }) {
           </button>
           <label className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-600 transition hover:bg-gray-50 hover:border-gray-300">
             <Upload size={12} /> Change photo
-            <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
+            <input type="file" accept="image/*" capture="user" className="hidden" onChange={handleFileUpload} />
           </label>
         </div>
       </div>
@@ -256,40 +259,44 @@ function PhotoCapture({ photo, onPhotoChange }) {
         </button>
         <label className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-600 transition hover:bg-gray-50 hover:border-gray-300">
           <Upload size={12} /> Upload
-          <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
+          <input type="file" accept="image/*" capture="user" className="hidden" onChange={handleFileUpload} />
         </label>
       </div>
-      <p className="text-[11px] text-gray-400">JPG, PNG · Max 5MB</p>
+      <p className="text-[11px] text-gray-400">JPG, PNG · Max {MAX_FILE_SIZE_LABEL}</p>
     </div>
   );
 }
 
 function DocumentUpload({ documents, onAdd, onRemove }) {
-  const inputRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
 
-  const handleFiles = (e) => {
-    const files = Array.from(e.target.files || []);
-    const toAdd = files;
+  const validateAndAddFiles = (files) => {
+    const toAdd = Array.from(files || []);
 
     const invalid = toAdd.filter(
-      (f) => !["image/jpeg", "image/png", "application/pdf"].includes(f.type)
+      (f) => !["image/jpeg", "image/png", "application/pdf"].includes(f.type),
     );
     if (invalid.length) {
       toast.error("Only JPG, PNG, or PDF files are allowed.");
     }
 
-    const oversized = toAdd.filter((f) => f.size > 5 * 1024 * 1024);
+    const oversized = toAdd.filter((f) => f.size > MAX_FILE_SIZE);
     if (oversized.length) {
-      toast.error("Each file must be under 5MB.");
+      toast.error(`Each file must be under ${MAX_FILE_SIZE_LABEL}.`);
     }
 
     const valid = toAdd.filter(
       (f) =>
         ["image/jpeg", "image/png", "application/pdf"].includes(f.type) &&
-        f.size <= 5 * 1024 * 1024
+        f.size <= MAX_FILE_SIZE,
     );
 
     valid.forEach((f) => onAdd(f));
+  };
+
+  const handleFiles = (e) => {
+    validateAndAddFiles(e.target.files);
     e.target.value = "";
   };
 
@@ -310,7 +317,7 @@ function DocumentUpload({ documents, onAdd, onRemove }) {
                 <div className="min-w-0">
                   <p className="truncate text-xs font-medium text-gray-900">{doc.name}</p>
                   <p className="text-[11px] text-gray-500">
-                    {(doc.size / 1024 / 1024).toFixed(2)} MB
+                    {(doc.size / 1024).toFixed(0)} KB
                   </p>
                 </div>
               </div>
@@ -326,32 +333,49 @@ function DocumentUpload({ documents, onAdd, onRemove }) {
         </div>
       )}
 
-      {/* Upload button — always visible */}
-      <label className="flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 py-4 transition hover:border-gray-300 hover:bg-gray-100">
-        {documents.length === 0 ? (
-          <>
-            <Upload size={18} className="text-gray-400" />
-            <span className="text-xs font-semibold text-gray-600">Click to Upload</span>
-            <span className="text-[11px] text-gray-400">JPG, PNG, PDF · Max 5MB each</span>
-          </>
-        ) : (
-          <>
-            <Plus size={16} className="text-gray-400" />
-            <span className="text-xs font-semibold text-gray-600">
-              Add another document ({documents.length} uploaded)
-            </span>
-            <span className="text-[11px] text-gray-400">JPG, PNG, PDF · Max 5MB each</span>
-          </>
-        )}
+      {/* Upload / camera actions */}
+      <div className="flex flex-col gap-2 rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 p-4">
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <button
+            type="button"
+            onClick={() => cameraInputRef.current?.click()}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-700 transition hover:border-gray-300 hover:bg-gray-100"
+          >
+            <Camera size={14} /> Take Photo
+          </button>
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-700 transition hover:border-gray-300 hover:bg-gray-100"
+          >
+            <Upload size={14} /> Choose File
+          </button>
+        </div>
+        <p className="text-center text-[11px] text-gray-400">
+          {documents.length === 0
+            ? "Upload ID proof — JPG, PNG, PDF"
+            : `Add another document (${documents.length} uploaded)`}
+          {" · Max "}
+          {MAX_FILE_SIZE_LABEL}
+          {" each"}
+        </p>
         <input
-          ref={inputRef}
+          ref={cameraInputRef}
           type="file"
-          accept=".jpg,.jpeg,.png,.pdf"
+          accept="image/*"
+          capture="environment"
+          className="hidden"
+          onChange={handleFiles}
+        />
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".jpg,.jpeg,.png,.pdf,image/*,application/pdf"
           multiple
           className="hidden"
           onChange={handleFiles}
         />
-      </label>
+      </div>
     </div>
   );
 }

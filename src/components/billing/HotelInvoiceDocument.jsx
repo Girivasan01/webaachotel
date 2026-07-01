@@ -11,8 +11,8 @@ import {
 
 const BORDER_COLOR = "#000000";
 
-const INSTAGRAM_QR_PATH = "/insta_qr.jpeg";
-const WEBSITE_QR_PATH = "/hotel_qr.jpeg";
+const INSTAGRAM_QR_PATH = "/insta_qr.png";
+const WEBSITE_QR_PATH = "/webaac_qr.png";
 
 Font.register({
   family: "Poppins",
@@ -452,26 +452,24 @@ export const HotelInvoiceDocument = ({
       <Page size="A4" style={styles.page}>
         <View style={styles.headerContainer}>
           <View style={styles.headerLeft}>
-            <Image style={styles.logo} src="/FridayInnLogo.png" />
+            <Image style={styles.logo} src="/WebaacLogo.png" />
             <View style={styles.headerTextContainer}>
-              <Text style={styles.hotelName}>HOTEL FRIDAY INN</Text>
+              <Text style={styles.hotelName}>Webaac Hotel CRM</Text>
               <Text style={styles.address}>
-                D.NO 307 ASAMBUR TO MANJAKUTTAI ROAD,{"\n"}
-                ASAMBUR VILLAGE, YERCAUD - 636602,{"\n"}
-                TAMIL NADU, INDIA.
+                Vellore, Tamil Nadu, India
               </Text>
               <Text style={styles.contact}>
-                Call: +91 6369469094 | +91 9489690022 | 04281 - 290001.
+                Call: +91 9025348397
               </Text>
               <Text style={styles.contact}>
-                Email:reservation@fridayinnyercaud.com
+                Email:hello@webaac.in
               </Text>
-              <Text style={styles.gstBanner}>
+              {/* <Text style={styles.gstBanner}>
                 GST NO:{" "}
                 {selectedBill?.category === "A frame wooden villa AC"
                   ? "33AMQPK7880E2ZO"
                   : "33AMQPK7880E1ZP"}
-              </Text>
+              </Text> */}
             </View>
           </View>
           <View style={styles.headerRight}>

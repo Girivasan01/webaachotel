@@ -63,7 +63,7 @@ export default function Login() {
         <div className="relative z-10">
           <div className="animate-slide-left">
             <h1 className="text-5xl font-bold mb-2">
-            Hotel Friday<span className="text-[#FFCC00] ml-1">Inn</span>
+            Webaac Hotel <span className="text-[#FFCC00] ml-1">CRM</span>
             </h1>
             <p className="text-sm text-gray-400 font-light">
               Hotel Management System
@@ -120,7 +120,7 @@ export default function Login() {
         </div>
 
         <div className="relative z-10 text-xs text-gray-500">
-          <p className="font-light">© 2026 Hotel Friday Inn. All rights reserved.</p>
+          <p className="font-light">© 2026 Webaac Hotel CRM. All rights reserved.</p>
         </div>
       </div>
 
@@ -134,7 +134,7 @@ export default function Login() {
               Welcome back
             </h2>
             <p className="text-sm text-gray-600 mt-2 font-light">
-              Sign in to your Friday Inn account
+              Sign in to your Webaac Hotel CRM account
             </p>
           </div>
 

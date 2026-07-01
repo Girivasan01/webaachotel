@@ -29,7 +29,7 @@ export default function BillModal({
             <p className="text-sm text-gray-600 mt-2">
               {orderMode === "restaurant"
                 ? "Restaurant Order"
-                : "Hotel Friday Inn Management System"}
+                : "Webaac Hotel CRM Management System"}
             </p>
           </div>
 
@@ -104,7 +104,7 @@ export default function BillModal({
             <p>
               {orderMode === "restaurant"
                 ? "Thank you for dining with us!"
-                : "Thank you for your stay at Hotel Friday Inn!"}
+                : "Thank you for your stay at Webaac Hotel CRM!"}
             </p>
             <p>
               Please pay at the {orderMode === "restaurant" ? "counter" : "reception desk"}

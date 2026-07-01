@@ -130,7 +130,8 @@ export default function RoomCalendar() {
         return current >= checkIn;
       }
 
-      return current >= checkIn && current <= checkOut;
+      // Checkout day is free — guest stays nights from check-in up to (not including) checkout
+      return current >= checkIn && current < checkOut;
     });
   };
 

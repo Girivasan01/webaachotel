@@ -79,7 +79,7 @@ export default function Topbar({ onMenuClick }) {
             </h2>
             <div className="w-0.5 h-4 md:w-1 md:h-6 bg-gradient-to-b from-blue-500 via-purple-500 to-pink-500 rounded-full"></div>
             <h2 className="text-sm md:text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent truncate max-w-[120px] md:max-w-none">
-            Hotel Friday Inn
+            Webaac Hotel CRM
             </h2>
           </div>
         </div>

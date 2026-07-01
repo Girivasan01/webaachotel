@@ -159,9 +159,9 @@ const formatNow = (formatIST) => {
 // Resolve logo to an absolute URL so @react-pdf/renderer can fetch it
 const getLogoSrc = () => {
   if (typeof window !== "undefined") {
-    return `${window.location.origin}/FridayInnLogo.png`;
+    return `${window.location.origin}/WebaacLogo.png`;
   }
-  return "/FridayInnLogo.png";
+  return "/WebaacLogo.png";
 };
 
 const THERMAL_WIDTH = 226;
@@ -187,7 +187,7 @@ const KitchenBillDocument = ({
         <View style={styles.headerRow}>
           {logoSrc ? <Image style={styles.logo} src={logoSrc} /> : null}
           <View style={styles.hotelMeta}>
-            <Text style={styles.title}>HOTEL FRIDAY INN</Text>
+            <Text style={styles.title}>Webaac Hotel CRM</Text>
             <Text style={styles.address}>
               D.NO 307 ASAMBUR TO MANJAKUTTAI ROAD,{"\n"}
               ASAMBUR VILLAGE, YERCAUD - 636602,{"\n"}
@@ -255,7 +255,7 @@ const KitchenBillDocument = ({
         </View>
 
         <Text style={styles.footer}>
-          Thank you for dining at Hotel Friday Inn.
+          Thank you for dining at Webaac Hotel CRM.
         </Text>
         <Text style={styles.footer}>Please visit again.</Text>
       </View>

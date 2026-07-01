@@ -51,24 +51,22 @@ export default function Sidebar({ isOpen, setIsOpen }) {
       {/* MOBILE OVERLAY */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm transition-opacity"
+          className="fixed inset-0 bg-black/50 z-[55] md:hidden backdrop-blur-sm transition-opacity"
           onClick={() => setIsOpen(false)}
         />
       )}
 
       <aside
-        className={`fixed left-0 inset-y-0 w-64 bg-gradient-to-b from-[#0A1A2F] via-[#0d2340] to-[#0A1A2F] text-white flex flex-col shadow-2xl z-50 border-r border-white/5 transition-transform duration-300 ease-in-out
+        className={`fixed left-0 top-0 h-dvh max-h-dvh w-64 bg-gradient-to-b from-[#0A1A2F] via-[#0d2340] to-[#0A1A2F] text-white flex flex-col shadow-2xl z-[60] md:z-50 border-r border-white/5 transition-transform duration-300 ease-in-out
         ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
       >
         {/* LOGO */}
-        <div className="px-5 py-6 border-b border-white/10 flex items-center justify-between">
+        <div className="shrink-0 px-5 py-4 md:py-6 border-b border-white/10 flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold tracking-tight leading-tight">
-                            <span className="text-white">Hotel</span>
-
-              <span className="text-white ml-1">Friday</span>
+              <span className="text-white">Webaac Hotel </span>
               <span className="ml-1 bg-linear-to-r from-[#E8C878] to-yellow-400 bg-clip-text text-transparent">
-                Inn
+                CRM
               </span>
             </h1>
             <p className="text-[10px] text-gray-400 mt-1 font-medium">
@@ -86,7 +84,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         </div>
 
         {/* NAVIGATION */}
-        <nav className="flex-1 px-4 py-6 overflow-y-auto scrollbar-hide">
+        <nav className="flex-1 min-h-0 px-4 py-4 md:py-6 overflow-y-auto overscroll-contain scrollbar-hide">
           <div className="space-y-1">
             {menuItems.map(({ name, to, icon: Icon }) => (
               <NavLink
@@ -129,21 +127,12 @@ export default function Sidebar({ isOpen, setIsOpen }) {
               </NavLink>
             ))}
           </div>
-
-          {/* ADMIN LABEL */}
-          {isAdmin && (
-            <div className="mt-6 pt-6 border-t border-white/10">
-              <p className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                Admin Tools
-              </p>
-            </div>
-          )}
         </nav>
 
-        <div className="px-6 py-4 border-t border-white/10">
+        <div className="shrink-0 px-6 py-3 md:py-4 border-t border-white/10">
           <div className="flex items-center justify-center">
             <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest">
-              © Hotel Friday Inn 2026
+              © Webaac Hotel CRM 2026
             </p>
           </div>
         </div>

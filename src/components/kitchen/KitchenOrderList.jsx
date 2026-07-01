@@ -231,7 +231,7 @@ export default function RestaurantOrderList({ user }) {
 
     if (orderMode === "restaurant") {
       generateRestaurantBillPDF({
-        restaurantName: "Hotel Friday Inn",
+        restaurantName: "Webaac Hotel CRM",
         tableNo: selectedBill.identifier,
         billNo: selectedBill.identifier,
         orders: selectedBill.items,
